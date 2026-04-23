@@ -305,34 +305,49 @@ function checkWinner() {
   return null;
 }
 
-function minimax(isComputer) {
-  let result = checkWinner();
-  if (result==="O") return [1,null];
-  if (result==="X") return [-1,null];
-  if (result==="Tie") return [0,null];
 
-  let bestMove=null;
+function minimax(isComputer, depth = 0) {
+  let result = checkWinner();
+
+  if (result === "O") return [10 - depth, null];
+  if (result === "X") return [depth - 10, null];
+  if (result === "Tie") return [0, null];
+
+  let bestMove = null;
 
   if (isComputer) {
-    let bestScore=-Infinity;
+    let bestScore = -Infinity;
+
     for (let move of availableMoves()) {
-      board[move]="O";
-      let [score]=minimax(false);
-      board[move]="";
-      if (score>bestScore){bestScore=score;bestMove=move;}
+      board[move] = "O";
+      let [score] = minimax(false, depth + 1);
+      board[move] = "";
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestMove = move;
+      }
     }
-    return [bestScore,bestMove];
+
+    return [bestScore, bestMove];
   } else {
-    let bestScore=Infinity;
+    let bestScore = Infinity;
+
     for (let move of availableMoves()) {
-      board[move]="X";
-      let [score]=minimax(true);
-      board[move]="";
-      if (score<bestScore){bestScore=score;bestMove=move;}
+      board[move] = "X";
+      let [score] = minimax(true, depth + 1);
+      board[move] = "";
+
+      if (score < bestScore) {
+        bestScore = score;
+        bestMove = move;
+      }
     }
-    return [bestScore,bestMove];
+
+    return [bestScore, bestMove];
   }
 }
+
 
 let buttons=[];
 
