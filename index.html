@@ -1,26 +1,35 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tic Tac Toe</title>
 
   <style>
+    :root {
+      --cell-size: 100px;
+      --cell-gap: 12px;
+      --title-size: 2.3em;
+      --status-size: 1.25em;
+    }
+
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       text-align: center;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       margin: 0;
-      padding: 10px 20px 16px;
+      padding: 12px 20px 18px;
       min-height: 100vh;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
+      overflow-x: hidden;
     }
 
     h1 {
-      font-size: 2.3em;
+      font-size: var(--title-size);
       margin: 0 0 6px;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     }
@@ -41,11 +50,12 @@
     }
 
     .mode label {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.12);
       padding: 8px 16px;
       border-radius: 25px;
       cursor: pointer;
       transition: background 0.3s;
+      font-size: 1rem;
     }
 
     .mode label:hover {
@@ -54,18 +64,18 @@
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(3, 100px);
-      gap: 12px;
+      grid-template-columns: repeat(3, var(--cell-size));
+      gap: var(--cell-gap);
       justify-content: center;
       margin: 16px 0;
       perspective: 1000px;
     }
 
     button.cell {
-      width: 100px;
-      height: 100px;
-      font-size: 2.4em;
-      background: rgba(255, 255, 255, 0.9);
+      width: var(--cell-size);
+      height: var(--cell-size);
+      font-size: calc(var(--cell-size) * 0.42);
+      background: rgba(255, 255, 255, 0.92);
       border: none;
       border-radius: 15px;
       cursor: pointer;
@@ -87,7 +97,7 @@
     }
 
     #status {
-      font-size: 1.25em;
+      font-size: var(--status-size);
       margin: 8px 0;
       min-height: 1.4em;
     }
@@ -114,25 +124,69 @@
       box-shadow: 0 6px 12px rgba(0,0,0,0.3);
     }
 
-    @media (max-width: 600px) {
-      .grid {
-        grid-template-columns: repeat(3, 78px);
-        gap: 10px;
-      }
-
-      button.cell {
-        width: 78px;
-        height: 78px;
-        font-size: 2em;
-      }
-
-      h1 {
-        font-size: 1.9em;
+    @media (max-width: 900px) {
+      :root {
+        --cell-size: 88px;
+        --cell-gap: 10px;
+        --title-size: 2em;
+        --status-size: 1.15em;
       }
 
       body {
-        padding: 8px 12px 14px;
+        padding: 12px 16px 18px;
         justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 600px) {
+      :root {
+        --cell-size: min(26vw, 82px);
+        --cell-gap: 8px;
+        --title-size: 1.75em;
+        --status-size: 1.05em;
+      }
+
+      body {
+        padding: 10px 12px 16px;
+        justify-content: flex-start;
+      }
+
+      h1 {
+        margin-bottom: 4px;
+      }
+
+      #subtitle {
+        font-size: 0.95em;
+        margin-bottom: 10px;
+      }
+
+      .mode {
+        gap: 8px;
+        margin: 8px 0 12px;
+      }
+
+      .mode label {
+        padding: 7px 12px;
+        font-size: 0.92rem;
+      }
+
+      .controls button {
+        padding: 9px 18px;
+        font-size: 0.98em;
+      }
+    }
+
+    @media (max-width: 380px) {
+      :root {
+        --cell-size: min(25vw, 72px);
+        --cell-gap: 7px;
+        --title-size: 1.5em;
+        --status-size: 0.98em;
+      }
+
+      .mode label {
+        font-size: 0.85rem;
+        padding: 6px 10px;
       }
     }
   </style>
