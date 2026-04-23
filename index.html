@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Tic Tac Toe</title>
 
   <style>
@@ -10,21 +10,32 @@
       --bg-1: #5b7cfa;
       --bg-2: #7d4fd4;
       --panel: rgba(255, 255, 255, 0.12);
-      --panel-strong: rgba(255, 255, 255, 0.18);
       --text: #ffffff;
       --text-dark: #23304a;
       --muted: rgba(255, 255, 255, 0.82);
-      --accent: #7ef0c5;
-      --accent-2: #ffd166;
       --button: #49b96e;
       --button-hover: #3ca35f;
       --radius: 22px;
       --shadow: 0 18px 40px rgba(12, 20, 44, 0.26);
-      --board-max: min(82vw, 52vh, 360px);
-      --gap: 12px;
-      --cell-size: calc((var(--board-max) - (var(--gap) * 2)) / 3);
-      --title-size: clamp(2rem, 4vw, 2.8rem);
-      --status-size: clamp(1rem, 2.2vw, 1.18rem);
+
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+      --app-width: min(100vw - 20px, 560px);
+      --app-height: min(100dvh - 20px - var(--safe-top) - var(--safe-bottom), 920px);
+
+      --title-size: clamp(1.5rem, 3.4vw, 2.7rem);
+      --subtitle-size: clamp(0.82rem, 1.8vw, 0.98rem);
+      --meta-size: clamp(0.8rem, 1.7vw, 0.92rem);
+      --status-size: clamp(0.95rem, 2vw, 1.15rem);
+      --control-size: clamp(0.88rem, 1.8vw, 0.98rem);
+
+      --section-gap: clamp(8px, 1.5vh, 14px);
+      --inner-pad: clamp(10px, 1.8vh, 18px);
+      --grid-gap: clamp(7px, 1.2vh, 12px);
+
+      --board-max: min(84vw, 48vh, 360px);
+      --cell-size: calc((var(--board-max) - (var(--grid-gap) * 2)) / 3);
     }
 
     * {
@@ -47,13 +58,17 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 14px;
+      padding:
+        max(10px, var(--safe-top))
+        10px
+        max(10px, var(--safe-bottom));
       overflow: hidden;
     }
 
     .app {
-      width: min(100%, 560px);
-      height: min(100dvh - 28px, 920px);
+      width: var(--app-width);
+      height: var(--app-height);
+      max-width: 100%;
       max-height: 100%;
       background: rgba(255, 255, 255, 0.08);
       backdrop-filter: blur(10px);
@@ -67,9 +82,10 @@
     .screen {
       position: absolute;
       inset: 0;
-      padding: 18px;
+      padding: var(--inner-pad);
       display: flex;
       flex-direction: column;
+      gap: var(--section-gap);
       opacity: 0;
       pointer-events: none;
       transform: translateY(8px);
@@ -84,44 +100,60 @@
 
     .setup-screen {
       justify-content: center;
-      gap: 14px;
     }
 
     .game-screen {
       justify-content: space-between;
-      gap: 10px;
+      min-height: 0;
     }
 
-    .top {
+    .top,
+    .game-header {
       display: grid;
-      gap: 8px;
+      gap: min(8px, 1vh);
       text-align: center;
     }
 
-    h1 {
+    h1,
+    .game-title {
       margin: 0;
-      font-size: var(--title-size);
       line-height: 1.05;
       letter-spacing: 0.02em;
       text-shadow: 0 3px 10px rgba(0, 0, 0, 0.22);
     }
 
+    h1 {
+      font-size: var(--title-size);
+    }
+
+    .game-title {
+      font-size: clamp(1.3rem, 2.8vw, 2rem);
+    }
+
     .subtitle {
       margin: 0;
       color: var(--muted);
-      font-size: 0.96rem;
+      font-size: var(--subtitle-size);
+      line-height: 1.3;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: var(--meta-size);
+      min-height: 1.2em;
+      line-height: 1.25;
     }
 
     .panel {
       background: var(--panel);
       border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: var(--radius);
-      padding: 14px;
+      padding: clamp(10px, 1.7vh, 14px);
     }
 
     .options {
       display: grid;
-      gap: 12px;
+      gap: clamp(10px, 1.4vh, 12px);
     }
 
     .option-row {
@@ -130,7 +162,7 @@
     }
 
     .option-label {
-      font-size: 0.9rem;
+      font-size: clamp(0.84rem, 1.6vw, 0.9rem);
       color: var(--muted);
     }
 
@@ -152,11 +184,13 @@
       background: rgba(255, 255, 255, 0.09);
       border: 1px solid rgba(255, 255, 255, 0.12);
       cursor: pointer;
-      font-size: 0.94rem;
+      font-size: var(--control-size);
       transition: 0.18s ease;
       user-select: none;
       touch-action: manipulation;
       text-align: center;
+      flex: 1 1 auto;
+      min-width: 110px;
     }
 
     .segmented label:hover {
@@ -171,22 +205,27 @@
       font-weight: 700;
     }
 
-    .primary-action {
-      width: 100%;
+    .primary-action,
+    .controls button {
       border: none;
       border-radius: 999px;
-      padding: 12px 18px;
-      font-size: 1rem;
+      padding: 10px 16px;
+      font-size: var(--control-size);
       font-weight: 800;
       cursor: pointer;
-      background: var(--button);
-      color: white;
-      box-shadow: 0 12px 24px rgba(20, 26, 48, 0.2);
       transition: 0.2s ease;
       touch-action: manipulation;
+      box-shadow: 0 8px 18px rgba(20, 26, 48, 0.18);
     }
 
-    .primary-action:hover {
+    .primary-action {
+      width: 100%;
+      background: var(--button);
+      color: white;
+    }
+
+    .primary-action:hover,
+    .btn-primary:hover {
       background: var(--button-hover);
       transform: translateY(-2px);
     }
@@ -201,40 +240,28 @@
       background: var(--panel);
       border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 18px;
-      padding: 10px 8px;
+      padding: 8px;
       text-align: center;
+    }
+
+    .score-card div {
+      font-size: clamp(0.78rem, 1.5vw, 0.9rem);
+      line-height: 1.2;
     }
 
     .score-card strong {
       display: block;
-      font-size: 1.28rem;
+      font-size: clamp(1.05rem, 2.1vw, 1.28rem);
       margin-top: 4px;
     }
 
-    .game-header {
-      display: grid;
-      gap: 8px;
-      text-align: center;
-    }
-
-    .game-title {
-      margin: 0;
-      font-size: clamp(1.5rem, 3vw, 2rem);
-      line-height: 1.08;
-    }
-
-    .meta {
-      color: var(--muted);
-      font-size: 0.9rem;
-      min-height: 1.2em;
-    }
-
     .status {
-      min-height: 1.4em;
+      min-height: 1.35em;
       text-align: center;
       font-size: var(--status-size);
       font-weight: 700;
       margin: 0;
+      line-height: 1.25;
     }
 
     .board-area {
@@ -243,12 +270,13 @@
       min-height: 0;
       justify-content: center;
       align-items: center;
+      padding: 2px 0;
     }
 
     .grid {
       display: grid;
       grid-template-columns: repeat(3, var(--cell-size));
-      gap: var(--gap);
+      gap: var(--grid-gap);
     }
 
     .cell {
@@ -297,35 +325,14 @@
       gap: 8px;
     }
 
-    .controls button {
-      border: none;
-      border-radius: 999px;
-      padding: 10px 16px;
-      font-size: 0.95rem;
-      font-weight: 800;
-      cursor: pointer;
-      transition: 0.2s ease;
-      box-shadow: 0 8px 18px rgba(20, 26, 48, 0.18);
-      touch-action: manipulation;
-    }
-
     .btn-primary {
       background: var(--button);
       color: white;
     }
 
-    .btn-primary:hover {
-      background: var(--button-hover);
-      transform: translateY(-2px);
-    }
-
     .btn-secondary {
       background: rgba(255, 255, 255, 0.94);
       color: var(--text-dark);
-    }
-
-    .btn-secondary:hover {
-      transform: translateY(-2px);
     }
 
     .btn-tertiary {
@@ -334,8 +341,8 @@
       border: 1px solid rgba(255,255,255,0.14);
     }
 
+    .btn-secondary:hover,
     .btn-tertiary:hover {
-      background: rgba(255,255,255,0.18);
       transform: translateY(-2px);
     }
 
@@ -344,57 +351,9 @@
       to { transform: scale(1.04); }
     }
 
-    @media (max-width: 700px) {
+    @media (max-width: 420px) {
       :root {
-        --board-max: min(88vw, 48vh, 320px);
-        --gap: 10px;
-      }
-
-      .app {
-        width: min(100%, 500px);
-        height: min(100dvh - 20px, 860px);
-      }
-
-      .screen {
-        padding: 14px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      :root {
-        --board-max: min(92vw, 44vh, 285px);
-        --gap: 8px;
-      }
-
-      body {
-        padding: 10px;
-      }
-
-      .app {
-        width: 100%;
-        height: min(100dvh - 20px, 820px);
-        border-radius: 24px;
-      }
-
-      .subtitle,
-      .meta {
-        font-size: 0.88rem;
-      }
-
-      .segmented {
-        justify-content: center;
-      }
-
-      .segmented label {
-        font-size: 0.9rem;
-        padding: 7px 10px;
-      }
-    }
-
-    @media (max-width: 380px) {
-      :root {
-        --board-max: min(92vw, 40vh, 245px);
-        --gap: 7px;
+        --board-max: min(92vw, 42vh, 270px);
       }
 
       .scoreboard {
@@ -406,21 +365,22 @@
       }
 
       .segmented label {
+        min-width: 0;
         width: 100%;
       }
     }
 
-    @media (max-height: 720px) {
+    @media (max-height: 760px) {
       :root {
-        --board-max: min(84vw, 42vh, 270px);
+        --board-max: min(86vw, 40vh, 300px);
+        --section-gap: clamp(6px, 1vh, 10px);
       }
+    }
 
-      .screen {
-        padding: 12px;
-      }
-
-      h1 {
-        font-size: clamp(1.6rem, 4.2vw, 2.1rem);
+    @media (max-height: 680px) {
+      :root {
+        --board-max: min(82vw, 34vh, 250px);
+        --inner-pad: 10px;
       }
 
       .subtitle {
@@ -430,23 +390,21 @@
 
     @media (max-height: 620px) {
       :root {
-        --board-max: min(78vw, 36vh, 220px);
+        --board-max: min(78vw, 30vh, 220px);
+        --grid-gap: 7px;
       }
 
       .app {
-        height: min(100dvh - 12px, 760px);
-      }
-
-      .game-header {
-        gap: 4px;
+        border-radius: 22px;
       }
 
       .score-card {
-        padding: 8px 6px;
+        padding: 6px;
       }
 
+      .primary-action,
       .controls button {
-        padding: 9px 14px;
+        padding: 8px 14px;
       }
     }
   </style>
@@ -456,7 +414,7 @@
     <section class="screen setup-screen active" id="setupScreen">
       <div class="top">
         <h1>Tic-Tac-Toe</h1>
-        <p class="subtitle">Choose your setup first, then play on a clean game screen with no scrolling.</p>
+        <p class="subtitle">Pick your settings first, then play on a dedicated game screen that fits cleanly on phones and PCs.</p>
       </div>
 
       <div class="panel options" aria-label="Game settings">
@@ -580,7 +538,6 @@
       scoreLabelO: document.getElementById("scoreLabelO"),
       modeInputs: document.querySelectorAll('input[name="mode"]'),
       difficultyInputs: document.querySelectorAll('input[name="difficulty"]'),
-      firstTurnInputs: document.querySelectorAll('input[name="firstTurn"]'),
       difficultyGroup: document.getElementById("difficultyGroup")
     };
 
@@ -593,7 +550,6 @@
         button.className = "cell";
         button.setAttribute("role", "gridcell");
         button.setAttribute("aria-label", `Cell ${i + 1}`);
-        button.dataset.index = i;
         button.addEventListener("click", () => handleCellClick(i));
         elements.grid.appendChild(button);
         cells.push(button);
@@ -654,13 +610,10 @@
     }
 
     function findImmediateMove(symbol, board = state.board) {
-      const moves = preferredMoveOrder(getAvailableMoves(board));
-      for (const move of moves) {
+      for (const move of preferredMoveOrder(getAvailableMoves(board))) {
         const nextBoard = [...board];
         nextBoard[move] = symbol;
-        if (evaluateBoard(nextBoard).winner === symbol) {
-          return move;
-        }
+        if (evaluateBoard(nextBoard).winner === symbol) return move;
       }
       return null;
     }
@@ -679,18 +632,11 @@
       for (const move of preferredMoveOrder(getAvailableMoves(board))) {
         const nextBoard = [...board];
         nextBoard[move] = currentSymbol;
-        const resultNext = minimax(nextBoard, currentSymbol === "X" ? "O" : "X", depth + 1);
+        const next = minimax(nextBoard, currentSymbol === "X" ? "O" : "X", depth + 1);
 
-        if (maximizing) {
-          if (resultNext.score > bestScore) {
-            bestScore = resultNext.score;
-            bestMove = move;
-          }
-        } else {
-          if (resultNext.score < bestScore) {
-            bestScore = resultNext.score;
-            bestMove = move;
-          }
+        if (maximizing ? next.score > bestScore : next.score < bestScore) {
+          bestScore = next.score;
+          bestMove = move;
         }
       }
 
@@ -736,6 +682,7 @@
 
     function updateMeta() {
       const { mode, difficulty, firstTurn } = state.settings;
+
       if (mode === "single") {
         elements.gameMeta.textContent = `Single Player • ${difficulty[0].toUpperCase() + difficulty.slice(1)} • ${firstTurn === "human" ? "You start" : "Computer starts"}`;
         elements.scoreLabelX.textContent = "You";
@@ -820,7 +767,7 @@
       renderBoard();
       updateTurnStatus();
 
-      const delay = state.board.filter(Boolean).length <= 1 ? 380 : 240;
+      const delay = state.board.filter(Boolean).length <= 1 ? 360 : 220;
 
       setTimeout(() => {
         const move = getComputerMove();
@@ -866,8 +813,9 @@
       state.winningLine = null;
       state.isComputerThinking = false;
       state.currentPlayer = state.settings.firstTurn === "computer" ? "O" : "X";
-      renderBoard();
+
       updateMeta();
+      renderBoard();
       updateTurnStatus();
 
       if (state.settings.mode === "single" && state.currentPlayer === "O") {
@@ -895,7 +843,11 @@
     }
 
     function attachListeners() {
-      [...elements.modeInputs, ...elements.difficultyInputs, ...elements.firstTurnInputs].forEach(input => {
+      [
+        ...elements.modeInputs,
+        ...elements.difficultyInputs,
+        ...document.querySelectorAll('input[name="firstTurn"]')
+      ].forEach(input => {
         input.addEventListener("change", refreshSettingsUI);
       });
 
