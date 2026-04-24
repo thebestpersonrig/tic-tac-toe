@@ -28,7 +28,12 @@ import GameLayout from '../../layouts/GameLayout.astro';
       </div>
 
       <div class="grid-wrap">
-        <div class="grid" id="grid"></div>
+        <div class="grid" id="grid">
+          <div class="cell-bg"></div><div class="cell-bg"></div><div class="cell-bg"></div><div class="cell-bg"></div>
+          <div class="cell-bg"></div><div class="cell-bg"></div><div class="cell-bg"></div><div class="cell-bg"></div>
+          <div class="cell-bg"></div><div class="cell-bg"></div><div class="cell-bg"></div><div class="cell-bg"></div>
+          <div class="cell-bg"></div><div class="cell-bg"></div><div class="cell-bg"></div><div class="cell-bg"></div>
+        </div>
         <div class="overlay" id="overlay" hidden>
           <p id="overlay-msg"></p>
           <div class="overlay-btns">
@@ -58,18 +63,15 @@ import GameLayout from '../../layouts/GameLayout.astro';
 </style>
 
 <style>
-  /* ═══════════════════════════════ Layout ═════════════════════════════ */
+  /* ═══ Layout ═══ */
   .g2048-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
     min-height: 100dvh;
     padding: clamp(50px, 8vh, 76px) clamp(10px, 3vw, 24px) clamp(14px, 3vh, 28px);
     box-sizing: border-box;
   }
 
-  /* ═══════════════════════════════ Settings ═══════════════════════════ */
+  /* ═══ Settings ═══ */
   .settings-screen {
     display: none; flex-direction: column; align-items: center;
     gap: 20px; width: 100%; max-width: 380px; text-align: center;
@@ -78,16 +80,12 @@ import GameLayout from '../../layouts/GameLayout.astro';
   .game-title {
     margin: 0; font-size: clamp(2rem, 8vw, 3.4rem);
     font-weight: 900; letter-spacing: 0.04em;
-    text-shadow: 0 4px 14px rgba(0,0,0,0.35);
-    color: #f9a825;
+    text-shadow: 0 4px 14px rgba(0,0,0,0.35); color: #f9a825;
   }
-  .tagline {
-    margin: 0; font-size: 1rem; color: rgba(255,255,255,0.75);
-    line-height: 1.55;
-  }
+  .tagline { margin: 0; font-size: 1rem; color: rgba(255,255,255,0.75); line-height: 1.55; }
   .tagline strong { color: #f9a825; }
 
-  /* ═══════════════════════════════ Game screen ════════════════════════ */
+  /* ═══ Game screen ═══ */
   .game-screen {
     display: none; flex-direction: column; align-items: center;
     gap: clamp(8px, 1.5vh, 14px); width: 100%;
@@ -96,10 +94,8 @@ import GameLayout from '../../layouts/GameLayout.astro';
 
   /* Top bar */
   .top-bar {
-    display: flex; align-items: center;
-    justify-content: space-between;
-    width: min(92vw, calc(100dvh - 180px), 380px);
-    gap: 10px;
+    display: flex; align-items: center; justify-content: space-between;
+    width: min(92vw, calc(100dvh - 180px), 380px); gap: 10px;
   }
   .scores { display: flex; gap: 10px; }
   .score-box {
@@ -110,106 +106,103 @@ import GameLayout from '../../layouts/GameLayout.astro';
     font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em;
     color: rgba(255,255,255,0.55); display: block;
   }
-  .score-box strong {
-    font-size: clamp(1rem, 3vw, 1.25rem); display: block; margin-top: 1px;
-  }
+  .score-box strong { font-size: clamp(1rem, 3vw, 1.25rem); display: block; margin-top: 1px; }
 
   /* Grid */
-  .grid-wrap {
-    position: relative;
-    width: min(92vw, calc(100dvh - 180px), 380px);
-    aspect-ratio: 1;
-  }
+  .grid-wrap { position: relative; width: min(92vw, calc(100dvh - 180px), 380px); aspect-ratio: 1; }
   .grid {
-    width: 100%; height: 100%;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: clamp(6px, 1.4vw, 10px);
-    padding: clamp(6px, 1.4vw, 10px);
-    background: #bbada0;
-    border-radius: 12px;
-    box-shadow: 0 10px 36px rgba(0,0,0,0.5);
-    box-sizing: border-box;
+    position: relative; width: 100%; height: 100%;
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: clamp(6px, 1.4vw, 10px); padding: clamp(6px, 1.4vw, 10px);
+    background: #7a4a2a; border-radius: 12px;
+    box-shadow: 0 10px 36px rgba(0,0,0,0.5); box-sizing: border-box;
+  }
+  .cell-bg { background: rgba(255,200,120,0.15); border-radius: 6px; aspect-ratio: 1; }
+
+  /* Tile outer — handles position via transform */
+  .tile-outer {
+    position: absolute; top: 0; left: 0; z-index: 2;
+    container-type: size; border-radius: 6px;
   }
 
-  /* Cells */
-  .cell {
-    background: rgba(238,228,218,0.38);
-    border-radius: 6px;
-    aspect-ratio: 1;
-    display: flex; align-items: center; justify-content: center;
-  }
-
-  /* Tiles */
+  /* Tile inner — handles visual appearance */
   .tile {
     width: 100%; height: 100%;
     display: flex; align-items: center; justify-content: center;
-    border-radius: 6px;
-    font-weight: 800;
-    font-size: clamp(1.1rem, 5vw, 1.9rem);
-    line-height: 1;
-    transition: background 0.06s ease;
+    border-radius: 6px; font-weight: 800; font-size: 38cqw; line-height: 1;
   }
-  .tile[data-len="3"] { font-size: clamp(0.9rem, 4vw, 1.55rem); }
-  .tile[data-len="4"] { font-size: clamp(0.75rem, 3.3vw, 1.25rem); }
-  .tile[data-len="5"] { font-size: clamp(0.62rem, 2.8vw, 1.05rem); }
-  .tile[data-len="6"] { font-size: clamp(0.55rem, 2.4vw, 0.9rem); }
+  .tile[data-len="3"] { font-size: 29cqw; }
+  .tile[data-len="4"] { font-size: 24cqw; }
+  .tile[data-len="5"] { font-size: 20cqw; }
+  .tile[data-len="6"] { font-size: 17cqw; }
 
-  @keyframes tile-appear  { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-  @keyframes tile-pop     { 0% { transform: scale(1); } 45% { transform: scale(1.18); } 100% { transform: scale(1); } }
-  .t-new    { animation: tile-appear 0.14s ease-out; }
-  .t-merged { animation: tile-pop    0.18s ease-out; }
-
-  /* Tile color palette */
-  .t2    { background: #eee4da; color: #776e65; }
-  .t4    { background: #ede0c8; color: #776e65; }
-  .t8    { background: #f2b179; color: #f9f6f2; }
-  .t16   { background: #f59563; color: #f9f6f2; }
-  .t32   { background: #f67c5f; color: #f9f6f2; }
-  .t64   { background: #f65e3b; color: #f9f6f2; }
-  .t128  { background: #edcf72; color: #f9f6f2; }
-  .t256  { background: #edcc61; color: #f9f6f2; }
-  .t512  { background: #edc850; color: #f9f6f2; }
-  .t1024 { background: #edc53f; color: #f9f6f2; }
-  .t2048 {
-    background: #edc22e; color: #f9f6f2;
-    box-shadow: 0 0 28px rgba(237,194,46,0.7);
-    animation: tile-pop 0.25s ease-out;
+  /* Tile animations */
+  @keyframes tile-appear {
+    0%   { transform: scale(0);    opacity: 0; }
+    60%  { transform: scale(1.12); opacity: 1; }
+    80%  { transform: scale(0.94); }
+    100% { transform: scale(1); }
   }
-  .t-super { background: #3c3a32; color: #f9f6f2; }
+  @keyframes tile-pop {
+    0%   { transform: scale(1); }
+    35%  { transform: scale(1.28); }
+    65%  { transform: scale(0.94); }
+    100% { transform: scale(1); }
+  }
+  @keyframes squish-h {
+    0%   { transform: scaleX(1)    scaleY(1); }
+    20%  { transform: scaleX(0.80) scaleY(1.18); }
+    60%  { transform: scaleX(1.06) scaleY(0.96); }
+    100% { transform: scaleX(1)    scaleY(1); }
+  }
+  @keyframes squish-v {
+    0%   { transform: scaleX(1)    scaleY(1); }
+    20%  { transform: scaleX(1.18) scaleY(0.80); }
+    60%  { transform: scaleX(0.96) scaleY(1.06); }
+    100% { transform: scaleX(1)    scaleY(1); }
+  }
+  .tile-outer.t-new    > .tile { animation: tile-appear 0.20s cubic-bezier(0.34,1.56,0.64,1) both; }
+  .tile-outer.t-merged > .tile { animation: tile-pop    0.28s cubic-bezier(0.34,1.56,0.64,1) both; }
+  .tile-outer.moving-h > .tile { animation: squish-h var(--slide-dur, 0.14s) ease-in-out; }
+  .tile-outer.moving-v > .tile { animation: squish-v var(--slide-dur, 0.14s) ease-in-out; }
+
+  /* Red-orange-amber colour palette */
+  .t2    { background: #fff3e0; color: #4e2a0e; }
+  .t4    { background: #ffe0b2; color: #4e2a0e; }
+  .t8    { background: #ffcc80; color: #4e2a0e; }
+  .t16   { background: #ffb74d; color: #4e2a0e; }
+  .t32   { background: #ffa040; color: #fff8f0; }
+  .t64   { background: #f57600; color: #fff8f0; box-shadow: 0 2px 12px rgba(240,100,0,0.45); }
+  .t128  { background: #e55c00; color: #fff8f0; box-shadow: 0 2px 14px rgba(220,80,0,0.50); }
+  .t256  { background: #d44400; color: #fff8f0; box-shadow: 0 3px 16px rgba(200,60,0,0.55); }
+  .t512  { background: #c02e00; color: #fff8f0; box-shadow: 0 3px 18px rgba(180,40,0,0.60); }
+  .t1024 { background: #a81c00; color: #fff8f0; box-shadow: 0 4px 22px rgba(160,20,0,0.65); }
+  .t2048 { background: #8b0000; color: #fff8f0; box-shadow: 0 0 32px rgba(255,100,0,0.85), 0 0 60px rgba(220,50,0,0.40); }
+  .t-super { background: #3e1a0e; color: #fff8f0; }
 
   /* Overlay */
   .overlay {
-    position: absolute; inset: 0; border-radius: 12px;
-    background: rgba(238,228,218,0.78);
+    position: absolute; inset: 0; z-index: 10; border-radius: 12px;
+    background: rgba(238,228,218,0.78); backdrop-filter: blur(2px);
     display: flex; flex-direction: column;
     align-items: center; justify-content: center; gap: 16px;
-    backdrop-filter: blur(2px);
   }
   .overlay[hidden] { display: none; }
   #overlay-msg {
     margin: 0; font-size: clamp(1.2rem, 5vw, 1.7rem);
-    font-weight: 900; color: #776e65; text-align: center;
-    white-space: pre-line;
+    font-weight: 900; color: #776e65; text-align: center; white-space: pre-line;
   }
   .overlay-btns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
 
-  /* Hint */
-  .hint {
-    margin: 0; font-size: 0.8rem;
-    color: rgba(255,255,255,0.38); letter-spacing: 0.04em;
-  }
+  .hint { margin: 0; font-size: 0.8rem; color: rgba(255,255,255,0.38); letter-spacing: 0.04em; }
 
-  /* ═══════════════════════════════ Buttons ════════════════════════════ */
+  /* Buttons */
   .btn-primary, .btn-new {
     border: none; border-radius: 10px; font-family: inherit; font-weight: 700;
     cursor: pointer; transition: transform 0.15s, background 0.15s;
     -webkit-tap-highlight-color: transparent; min-height: 44px;
   }
-  .btn-primary {
-    background: #f9a825; color: #2d1f14;
-    font-size: 1rem; padding: 11px 24px;
-  }
+  .btn-primary { background: #f9a825; color: #2d1f14; font-size: 1rem; padding: 11px 24px; }
   .btn-primary:hover { transform: translateY(-2px); background: #f57f17; }
   .btn-new {
     background: rgba(255,255,255,0.14); color: #fff;
@@ -233,134 +226,194 @@ import GameLayout from '../../layouts/GameLayout.astro';
   const scoreEl        = document.getElementById('score-val');
   const bestEl         = document.getElementById('best-val');
 
-  const SIZE = 4;
-  let grid, score, best = 0, won, over;
+  const SIZE     = 4;
+  const SLIDE_MS = 140;
+  const sleep    = ms => new Promise(r => setTimeout(r, ms));
 
-  /* ── New game ── */
-  function newGame() {
-    grid  = new Array(SIZE * SIZE).fill(0);
-    score = 0;
-    won   = false;
-    over  = false;
-    overlay.hidden = true;
-    scoreEl.textContent = 0;
-    spawnTile();
-    spawnTile();
-    render(-1, new Set());
+  let tiles = [], nextId = 0;
+  const tileEls = new Map();        // id → outer DOM element
+  let score = 0, best = 0, won = false, over = false, animating = false;
+  let metrics = null;
+
+  /* ── Layout metrics (memoised, cleared on resize) ── */
+  function getMetrics() {
+    if (metrics) return metrics;
+    const style    = getComputedStyle(gridEl);
+    const pad      = parseFloat(style.paddingLeft)  || 8;
+    const gap      = parseFloat(style.columnGap)    || 8;
+    const cellSize = (gridEl.clientWidth - pad * 2 - gap * (SIZE - 1)) / SIZE;
+    return (metrics = { pad, step: cellSize + gap, cellSize });
   }
 
-  /* ── Spawn ── */
+  function applyTransform(el, row, col) {
+    const { pad, step } = getMetrics();
+    el.style.transform = `translate(${pad + col * step}px, ${pad + row * step}px)`;
+  }
+
+  /* ── Create a tile DOM element ── */
+  function makeTileEl(tile, animClass) {
+    const outer = document.createElement('div');
+    outer.className = 'tile-outer' + (animClass ? ' ' + animClass : '');
+
+    const inner     = document.createElement('div');
+    const key       = Math.min(tile.value, 2048);
+    inner.className = `tile t${key}${tile.value > 2048 ? ' t-super' : ''}`;
+    inner.dataset.len = String(tile.value).length;
+    inner.textContent = tile.value;
+    outer.appendChild(inner);
+
+    const { cellSize } = getMetrics();
+    outer.style.width  = `${cellSize}px`;
+    outer.style.height = `${cellSize}px`;
+    applyTransform(outer, tile.row, tile.col);
+    gridEl.appendChild(outer);
+    tileEls.set(tile.id, outer);
+  }
+
+  /* ── Spawn a random tile ── */
   function spawnTile() {
-    const empty = grid.reduce((a, v, i) => (v === 0 ? [...a, i] : a), []);
-    if (!empty.length) return -1;
-    const idx = empty[Math.floor(Math.random() * empty.length)];
-    grid[idx] = Math.random() < 0.9 ? 2 : 4;
-    return idx;
+    const occupied = new Set(tiles.map(t => t.row * SIZE + t.col));
+    const empty = [];
+    for (let i = 0; i < SIZE * SIZE; i++) if (!occupied.has(i)) empty.push(i);
+    if (!empty.length) return;
+    const idx   = empty[Math.floor(Math.random() * empty.length)];
+    const t     = { id: nextId++, value: Math.random() < 0.9 ? 2 : 4,
+                    row: Math.floor(idx / SIZE), col: idx % SIZE };
+    tiles.push(t);
+    makeTileEl(t, 't-new');
   }
 
-  /* ── Move logic ── */
+  /* ── Move logic — mutates tile positions in place ── */
   function applyMove(dir) {
+    const board = Array.from({ length: SIZE }, () => new Array(SIZE).fill(null));
+    tiles.forEach(t => { board[t.row][t.col] = t; });
+
     let totalScore = 0, moved = false;
-    const mergedSet = new Set();
+    const toRemove       = new Set();
+    const newMergedTiles = [];
 
-    function processLine(indices) {
-      const orig = indices.map(i => grid[i]);
-      const vals  = orig.filter(v => v !== 0);
-      const out   = [];
-      const isMerge = [];
-
-      for (let i = 0; i < vals.length; i++) {
-        if (i + 1 < vals.length && vals[i] === vals[i + 1]) {
-          const val = vals[i] * 2;
-          out.push(val); isMerge.push(true);
-          totalScore += val; i++;
-        } else {
-          out.push(vals[i]); isMerge.push(false);
-        }
-      }
-      while (out.length < indices.length) { out.push(0); isMerge.push(false); }
-
-      if (out.join() !== orig.join()) moved = true;
-      indices.forEach((gi, j) => {
-        grid[gi] = out[j];
-        if (isMerge[j] && out[j]) mergedSet.add(gi);
-      });
+    function getLines() {
+      const L = [];
+      if (dir === 'left')  for (let r = 0; r < SIZE; r++) L.push(Array.from({length:SIZE}, (_,c) => [r, c]));
+      if (dir === 'right') for (let r = 0; r < SIZE; r++) L.push(Array.from({length:SIZE}, (_,c) => [r, SIZE-1-c]));
+      if (dir === 'up')    for (let c = 0; c < SIZE; c++) L.push(Array.from({length:SIZE}, (_,r) => [r, c]));
+      if (dir === 'down')  for (let c = 0; c < SIZE; c++) L.push(Array.from({length:SIZE}, (_,r) => [SIZE-1-r, c]));
+      return L;
     }
 
-    const lines = [];
-    if (dir === 'left')  for (let r = 0; r < SIZE; r++) lines.push([0,1,2,3].map(c => r*SIZE+c));
-    if (dir === 'right') for (let r = 0; r < SIZE; r++) lines.push([3,2,1,0].map(c => r*SIZE+c));
-    if (dir === 'up')    for (let c = 0; c < SIZE; c++) lines.push([0,1,2,3].map(r => r*SIZE+c));
-    if (dir === 'down')  for (let c = 0; c < SIZE; c++) lines.push([3,2,1,0].map(r => r*SIZE+c));
-    lines.forEach(processLine);
+    for (const rowCols of getLines()) {
+      const existing = rowCols.map(([r, c]) => board[r][c]).filter(Boolean);
+      let outIdx = 0;
 
-    return { moved, totalScore, mergedSet };
+      for (let i = 0; i < existing.length; i++) {
+        const [tr, tc] = rowCols[outIdx];
+        if (i + 1 < existing.length && existing[i].value === existing[i+1].value) {
+          const val = existing[i].value * 2;
+          totalScore += val;
+          if (existing[i].row !== tr   || existing[i].col !== tc)   moved = true;
+          if (existing[i+1].row !== tr || existing[i+1].col !== tc) moved = true;
+          existing[i].row   = tr;  existing[i].col   = tc;
+          existing[i+1].row = tr;  existing[i+1].col = tc;
+          toRemove.add(existing[i].id);
+          toRemove.add(existing[i+1].id);
+          newMergedTiles.push({ id: nextId++, value: val, row: tr, col: tc });
+          outIdx++;  i++;
+        } else {
+          if (existing[i].row !== tr || existing[i].col !== tc) moved = true;
+          existing[i].row = tr;  existing[i].col = tc;
+          outIdx++;
+        }
+      }
+    }
+
+    return { moved, totalScore, toRemove, newMergedTiles };
   }
 
   function canMove() {
-    if (grid.some(v => v === 0)) return true;
+    if (tiles.length < SIZE * SIZE) return true;
+    const board = Array.from({ length: SIZE }, () => new Array(SIZE).fill(0));
+    tiles.forEach(t => { board[t.row][t.col] = t.value; });
     for (let r = 0; r < SIZE; r++)
       for (let c = 0; c < SIZE; c++) {
-        const v = grid[r*SIZE+c];
-        if (c < SIZE-1 && v === grid[r*SIZE+c+1]) return true;
-        if (r < SIZE-1 && v === grid[(r+1)*SIZE+c]) return true;
+        if (c < SIZE-1 && board[r][c] === board[r][c+1]) return true;
+        if (r < SIZE-1 && board[r][c] === board[r+1][c]) return true;
       }
     return false;
   }
 
-  /* ── Handle move ── */
-  function handleMove(dir) {
-    if (over) return;
-    const { moved, totalScore, mergedSet } = applyMove(dir);
+  /* ── Handle a player move ── */
+  async function handleMove(dir) {
+    if (over || animating) return;
+
+    // Strip previous animation classes before computing new move
+    tiles.forEach(t => {
+      const el = tileEls.get(t.id);
+      if (el) el.classList.remove('t-new', 't-merged', 'moving-h', 'moving-v');
+    });
+
+    const origPos = new Map(tiles.map(t => [t.id, { row: t.row, col: t.col }]));
+    const { moved, totalScore, toRemove, newMergedTiles } = applyMove(dir);
     if (!moved) return;
+    animating = true;
+
+    const isHoriz   = dir === 'left' || dir === 'right';
+    const moveClass = isHoriz ? 'moving-h' : 'moving-v';
+
+    // Slide all tiles to their updated positions
+    tiles.forEach(t => {
+      const el = tileEls.get(t.id);
+      if (!el) return;
+      const orig    = origPos.get(t.id);
+      const didMove = orig && (orig.row !== t.row || orig.col !== t.col);
+      el.style.transition = `transform ${SLIDE_MS}ms cubic-bezier(0.15, 0.7, 0.3, 1)`;
+      if (didMove) {
+        el.style.setProperty('--slide-dur', `${SLIDE_MS}ms`);
+        el.classList.add(moveClass);
+      }
+      applyTransform(el, t.row, t.col);
+    });
+
+    await sleep(SLIDE_MS);
+
+    // Swap out merged sources for their combined result
+    toRemove.forEach(id => { tileEls.get(id)?.remove(); tileEls.delete(id); });
+    tiles = tiles.filter(t => !toRemove.has(t.id));
+    newMergedTiles.forEach(t => { tiles.push(t); makeTileEl(t, 't-merged'); });
 
     score += totalScore;
     if (score > best) { best = score; bestEl.textContent = best; }
     scoreEl.textContent = score;
 
-    const spawnedIdx = spawnTile();
-    render(spawnedIdx, mergedSet);
+    await sleep(30);
+    spawnTile();
+    animating = false;
 
-    if (!won && grid.some(v => v >= 2048)) {
+    if (!won && tiles.some(t => t.value >= 2048)) {
       won = true;
       showOverlay('You reached\n2048! 🎉', true);
       return;
     }
-    if (!canMove()) {
-      over = true;
-      showOverlay('Game Over!');
-    }
+    if (!canMove()) { over = true; showOverlay('Game Over!'); }
   }
 
-  /* ── Render ── */
-  function render(spawnedIdx, mergedSet) {
-    gridEl.innerHTML = '';
-    for (let i = 0; i < SIZE * SIZE; i++) {
-      const cell = document.createElement('div');
-      cell.className = 'cell';
-      const val = grid[i];
-      if (val) {
-        const tile = document.createElement('div');
-        const key  = Math.min(val, 2048);
-        tile.className = `tile t${key}${val > 2048 ? ' t-super' : ''}`;
-        tile.dataset.len = String(val).length;
-        if (i === spawnedIdx) tile.classList.add('t-new');
-        else if (mergedSet.has(i)) tile.classList.add('t-merged');
-        tile.textContent = val;
-        cell.appendChild(tile);
-      }
-      gridEl.appendChild(cell);
-    }
+  /* ── Reset ── */
+  function newGame() {
+    tileEls.forEach(el => el.remove());
+    tileEls.clear();
+    tiles = [];  score = 0;  won = false;  over = false;  animating = false;
+    overlay.hidden = true;
+    scoreEl.textContent = 0;
+    spawnTile();
+    spawnTile();
   }
 
-  /* ── Overlay ── */
   function showOverlay(msg, canContinue = false) {
     overlayMsg.textContent = msg;
     keepGoingBtn.hidden = !canContinue;
     overlay.hidden = false;
   }
 
-  /* ── Input: keyboard ── */
+  /* ── Keyboard input ── */
   const KEY_MAP = {
     ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down',
     a: 'left', d: 'right', w: 'up', s: 'down',
@@ -373,21 +426,30 @@ import GameLayout from '../../layouts/GameLayout.astro';
     handleMove(dir);
   });
 
-  /* ── Input: touch swipe ── */
+  /* ── Touch swipe ── */
   let tx = null, ty = null;
-  gridEl.addEventListener('touchstart', e => {
-    tx = e.touches[0].clientX; ty = e.touches[0].clientY;
-  }, { passive: true });
+  gridEl.addEventListener('touchstart', e => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, { passive: true });
   gridEl.addEventListener('touchend', e => {
     if (tx == null) return;
     const dx = e.changedTouches[0].clientX - tx;
     const dy = e.changedTouches[0].clientY - ty;
     tx = ty = null;
-    if (Math.abs(dx) > Math.abs(dy))
-      handleMove(dx > 0 ? 'right' : 'left');
-    else
-      handleMove(dy > 0 ? 'down' : 'up');
+    if (Math.abs(dx) > Math.abs(dy)) handleMove(dx > 0 ? 'right' : 'left');
+    else                             handleMove(dy > 0 ? 'down'  : 'up');
   }, { passive: true });
+
+  /* ── Resize: snap tiles to recalculated positions ── */
+  window.addEventListener('resize', () => {
+    metrics = null;
+    const { cellSize } = getMetrics();
+    tiles.forEach(t => {
+      const el = tileEls.get(t.id);
+      if (!el) return;
+      el.style.width = el.style.height = `${cellSize}px`;
+      el.style.transition = 'none';
+      applyTransform(el, t.row, t.col);
+    });
+  });
 
   /* ── Screen transitions ── */
   startBtn.addEventListener('click', () => {
@@ -397,9 +459,6 @@ import GameLayout from '../../layouts/GameLayout.astro';
   });
   newGameBtn.addEventListener('click', newGame);
   tryAgainBtn.addEventListener('click', newGame);
-  keepGoingBtn.addEventListener('click', () => {
-    overlay.hidden = true;
-    over = false;
-  });
+  keepGoingBtn.addEventListener('click', () => { overlay.hidden = true; over = false; });
 })();
 </script>
