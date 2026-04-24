@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 
+const BASE = '/tic-tac-toe';
+
 const viewports = [
   { name: '320x568 (SE portrait)', w: 320, h: 568 },
   { name: '375x667 (iPhone 8)', w: 375, h: 667 },
@@ -16,7 +18,7 @@ test.describe('Responsive — landing page', () => {
   for (const vp of viewports) {
     test(`${vp.name}: no horizontal scroll, card visible`, async ({ page }) => {
       await page.setViewportSize({ width: vp.w, height: vp.h });
-      await page.goto('/');
+      await page.goto(`${BASE}/`);
 
       const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
       expect(scrollWidth).toBeLessThanOrEqual(vp.w + 1);
@@ -30,7 +32,7 @@ test.describe('Responsive — tic-tac-toe game', () => {
   for (const vp of viewports) {
     test(`${vp.name}: board and controls fit, no overlap`, async ({ page }) => {
       await page.setViewportSize({ width: vp.w, height: vp.h });
-      await page.goto('/games/tic-tac-toe');
+      await page.goto(`${BASE}/games/tic-tac-toe`);
       await page.getByRole('button', { name: 'Start Game' }).click();
 
       const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);

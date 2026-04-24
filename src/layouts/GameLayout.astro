@@ -4,9 +4,10 @@ interface Props {
   title: string;
 }
 const { title } = Astro.props;
+const homeHref = import.meta.env.BASE_URL;
 ---
 <BaseLayout title={title}>
-  <a href="/" class="back-link" aria-label="Back to games">← Games</a>
+  <a href={homeHref} class="back-link" aria-label="Back to games">← Games</a>
   <slot />
 </BaseLayout>
 
