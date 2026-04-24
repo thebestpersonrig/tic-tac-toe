@@ -3,35 +3,63 @@ import GameLayout from '../../layouts/GameLayout.astro';
 ---
 <GameLayout title="Snake">
   <div class="snake-wrapper">
+
+    <!-- ── Settings ── -->
     <div class="settings-screen active" id="settings-screen">
       <h1 class="game-title">Snake</h1>
       <div class="settings-form">
+
         <label class="field">
-          <span>Speed</span>
-          <select id="speed-select">
-            <option value="200">Slow</option>
-            <option value="130" selected>Medium</option>
-            <option value="80">Fast</option>
-            <option value="50">Insane</option>
+          <span>Difficulty</span>
+          <select id="difficulty-select">
+            <option value="easy">Easy — relaxed pace</option>
+            <option value="medium" selected>Medium — standard</option>
+            <option value="hard">Hard — fast + moving obstacles</option>
           </select>
         </label>
+
         <label class="field">
           <span>Grid size</span>
           <select id="grid-select">
             <option value="15">Small (15×15)</option>
             <option value="20" selected>Medium (20×20)</option>
-            <option value="25">Large (25×25)</option>
+            <option value="28">Large (28×28)</option>
           </select>
         </label>
+
+        <label class="field">
+          <span>Snake skin</span>
+          <select id="skin-select">
+            <option value="classic">Classic (Green)</option>
+            <option value="neon">Neon (Cyan)</option>
+            <option value="fire">Fire (Orange-Red)</option>
+            <option value="purple">Purple</option>
+            <option value="gold">Gold</option>
+            <option value="ice">Ice (Blue)</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Obstacles</span>
+          <select id="obstacle-select">
+            <option value="0">None</option>
+            <option value="0.03">Few</option>
+            <option value="0.08">Many</option>
+          </select>
+        </label>
+
       </div>
       <button class="btn-primary" id="start-btn">Start Game</button>
     </div>
 
+    <!-- ── Game ── -->
     <div class="game-screen" id="game-screen">
       <div class="hud">
         <span class="hud-item">Score: <strong id="score-val">0</strong></span>
         <span class="hud-item">Best: <strong id="best-val">0</strong></span>
+        <span class="hud-item diff-badge" id="diff-badge"></span>
       </div>
+
       <div class="canvas-wrap">
         <canvas id="snake-canvas" aria-label="Snake game board"></canvas>
         <div class="overlay" id="overlay" hidden>
@@ -39,17 +67,21 @@ import GameLayout from '../../layouts/GameLayout.astro';
           <button class="btn-secondary" id="overlay-btn">Play Again</button>
         </div>
       </div>
+
       <div class="controls-row">
         <button class="btn-secondary" id="pause-btn">Pause</button>
         <button class="btn-secondary" id="settings-btn">Settings</button>
       </div>
-      <div class="dpad" id="dpad" aria-label="D-pad controls">
-        <button class="dpad-btn" data-dir="up"   aria-label="Up">▲</button>
+
+      <!-- D-pad: only rendered on touch devices via CSS -->
+      <div class="dpad" id="dpad" aria-label="Directional controls">
+        <button class="dpad-btn" data-dir="up"    aria-label="Up">▲</button>
         <button class="dpad-btn" data-dir="left"  aria-label="Left">◀</button>
         <button class="dpad-btn" data-dir="down"  aria-label="Down">▼</button>
         <button class="dpad-btn" data-dir="right" aria-label="Right">▶</button>
       </div>
     </div>
+
   </div>
 </GameLayout>
 
@@ -58,7 +90,7 @@ import GameLayout from '../../layouts/GameLayout.astro';
   body {
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     background:
-      radial-gradient(circle at top left, rgba(255,255,255,0.15), transparent 28%),
+      radial-gradient(circle at top left,  rgba(255,255,255,0.15), transparent 28%),
       radial-gradient(circle at bottom right, rgba(255,255,255,0.10), transparent 22%),
       linear-gradient(135deg, #1a6b3a, #0d3d20);
     min-height: 100dvh;
@@ -67,145 +99,148 @@ import GameLayout from '../../layouts/GameLayout.astro';
 </style>
 
 <style>
+  /* ═══════════════════════════════ Layout ═════════════════════════════ */
   .snake-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: 100dvh;
-    padding: clamp(48px, 8vh, 72px) clamp(12px, 3vw, 24px) clamp(12px, 3vh, 24px);
+    padding: clamp(50px, 8vh, 76px) clamp(10px, 3vw, 24px) clamp(12px, 3vh, 28px);
     box-sizing: border-box;
   }
 
-  /* ── Settings screen ── */
-  .settings-screen { display: none; flex-direction: column; align-items: center; gap: 20px; width: 100%; max-width: 360px; }
+  /* ═══════════════════════════════ Settings ═══════════════════════════ */
+  .settings-screen {
+    display: none; flex-direction: column; align-items: center;
+    gap: 20px; width: 100%; max-width: 400px;
+  }
   .settings-screen.active { display: flex; }
-  .game-title { margin: 0; font-size: clamp(1.8rem, 5vw, 2.6rem); text-align: center; text-shadow: 0 3px 10px rgba(0,0,0,0.3); }
+  .game-title {
+    margin: 0; font-size: clamp(1.8rem, 5vw, 2.6rem);
+    text-align: center; text-shadow: 0 3px 10px rgba(0,0,0,0.3);
+  }
   .settings-form { display: flex; flex-direction: column; gap: 14px; width: 100%; }
   .field { display: flex; flex-direction: column; gap: 4px; font-size: 0.9rem; color: rgba(255,255,255,0.8); }
   select {
-    background: rgba(255,255,255,0.12);
-    border: 1px solid rgba(255,255,255,0.25);
-    border-radius: 10px;
-    color: #fff;
-    padding: 10px 12px;
-    font-size: 1rem;
-    font-family: inherit;
-    cursor: pointer;
-    appearance: none;
-    -webkit-appearance: none;
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 10px; color: #fff; padding: 10px 12px;
+    font-size: 1rem; font-family: inherit; cursor: pointer;
+    appearance: none; -webkit-appearance: none;
   }
   select option { background: #1a3d2a; color: #fff; }
 
-  /* ── Game screen ── */
-  .game-screen { display: none; flex-direction: column; align-items: center; gap: clamp(6px, 1.5vh, 12px); width: 100%; }
+  /* ═══════════════════════════════ Game screen ════════════════════════ */
+  .game-screen {
+    display: none; flex-direction: column; align-items: center;
+    gap: clamp(6px, 1.4vh, 12px); width: 100%;
+  }
   .game-screen.active { display: flex; }
 
+  /* HUD */
   .hud {
-    display: flex;
-    gap: 24px;
-    font-size: clamp(0.85rem, 2.5vw, 1rem);
-    background: rgba(0,0,0,0.25);
-    padding: 6px 18px;
-    border-radius: 999px;
+    display: flex; gap: clamp(14px, 3vw, 28px); align-items: center;
+    font-size: clamp(0.8rem, 2.4vw, 0.95rem);
+    background: rgba(0,0,0,0.28); padding: 5px 18px; border-radius: 999px;
   }
-  .hud-item strong { font-size: 1.05em; }
+  .diff-badge {
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em;
+    padding: 2px 8px; border-radius: 999px; text-transform: uppercase;
+  }
+  .diff-badge.easy   { background: #22c55e33; color: #4ade80; }
+  .diff-badge.medium { background: #f59e0b33; color: #fbbf24; }
+  .diff-badge.hard   { background: #ef444433; color: #f87171; }
 
+  /* Canvas */
   .canvas-wrap {
     position: relative;
-    width: min(min(100vw, 100dvh - 200px), 480px);
+    /* Desktop: fit inside viewport without dpad */
+    width: min(min(100vw - 20px, 100dvh - 148px), 640px);
     aspect-ratio: 1;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    border-radius: 14px; overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.45);
+  }
+  /* Touch: shrink to leave room for dpad below */
+  @media (pointer: coarse) {
+    .canvas-wrap {
+      width: min(100vw - 20px, calc(100dvh - clamp(260px, 42vh, 320px)));
+    }
   }
   #snake-canvas { display: block; width: 100%; height: 100%; }
 
+  /* Overlay (game-over) */
   .overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.65);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 14px;
-    border-radius: 12px;
+    position: absolute; inset: 0; background: rgba(0,0,0,0.65);
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 16px; border-radius: 14px;
   }
   .overlay[hidden] { display: none; }
-  #overlay-msg { margin: 0; font-size: clamp(1.1rem, 4vw, 1.4rem); font-weight: 700; text-align: center; }
-
-  .controls-row {
-    display: flex;
-    gap: 12px;
+  #overlay-msg {
+    margin: 0; font-size: clamp(1rem, 4vw, 1.4rem);
+    font-weight: 700; text-align: center; padding: 0 16px;
+    white-space: pre-line;
   }
 
-  /* D-pad */
-  .dpad {
-    display: grid;
-    grid-template-areas: ". up ." "left . right" ". down .";
-    grid-template-columns: 52px 52px 52px;
-    grid-template-rows: 52px 52px 52px;
-    gap: 4px;
+  /* Pause / Settings buttons */
+  .controls-row { display: flex; gap: 12px; }
+
+  /* ═══════════════════════════════ D-pad ══════════════════════════════ */
+  /* Hidden on mouse/trackpad devices */
+  .dpad { display: none; }
+
+  @media (pointer: coarse) {
+    .dpad {
+      display: grid;
+      grid-template-areas: ". up ." "left . right" ". down .";
+      grid-template-columns: repeat(3, clamp(48px, 13vw, 66px));
+      grid-template-rows:    repeat(3, clamp(48px, 13vw, 66px));
+      gap: 5px;
+    }
   }
   .dpad-btn {
-    background: rgba(255,255,255,0.15);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 10px;
-    color: #fff;
-    font-size: 1.2rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
-    touch-action: manipulation;
+    background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 12px; color: #fff; font-size: clamp(1rem, 3vw, 1.3rem);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    -webkit-tap-highlight-color: transparent; user-select: none;
+    touch-action: manipulation; transition: background 0.1s;
   }
-  .dpad-btn:active { background: rgba(255,255,255,0.3); }
+  .dpad-btn:active { background: rgba(255,255,255,0.32); transform: scale(0.94); }
   .dpad-btn[data-dir="up"]    { grid-area: up; }
   .dpad-btn[data-dir="left"]  { grid-area: left; }
   .dpad-btn[data-dir="down"]  { grid-area: down; }
   .dpad-btn[data-dir="right"] { grid-area: right; }
 
-  /* Buttons */
+  /* ═══════════════════════════════ Buttons ════════════════════════════ */
   .btn-primary, .btn-secondary {
-    border: none;
-    border-radius: 12px;
-    font-family: inherit;
-    font-weight: 600;
-    cursor: pointer;
-    transition: transform 0.15s ease, background 0.15s ease;
-    -webkit-tap-highlight-color: transparent;
-    min-height: 44px;
+    border: none; border-radius: 12px; font-family: inherit; font-weight: 600;
+    cursor: pointer; transition: transform 0.15s, background 0.15s;
+    -webkit-tap-highlight-color: transparent; min-height: 44px;
   }
   .btn-primary {
-    background: #4ade80;
-    color: #0d3d20;
-    font-size: 1.05rem;
-    padding: 12px 28px;
-    width: 100%;
+    background: #4ade80; color: #0d3d20;
+    font-size: 1.05rem; padding: 12px 28px; width: 100%;
   }
   .btn-primary:hover { transform: translateY(-2px); background: #22c55e; }
   .btn-secondary {
-    background: rgba(255,255,255,0.15);
-    color: #fff;
-    font-size: 0.9rem;
-    padding: 10px 20px;
-    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.15); color: #fff;
+    font-size: 0.9rem; padding: 10px 22px; border: 1px solid rgba(255,255,255,0.2);
   }
   .btn-secondary:hover { background: rgba(255,255,255,0.25); }
 
-  /* Landscape phones: shrink canvas, hide dpad if room is very tight */
+  /* ═══════════════════════════════ Landscape phones ═══════════════════ */
   @media (orientation: landscape) and (max-height: 500px) {
-    .snake-wrapper { padding-top: 44px; gap: 6px; }
-    .canvas-wrap { width: min(calc(100dvh - 130px), 340px); }
-    .dpad { grid-template-columns: 44px 44px 44px; grid-template-rows: 44px 44px 44px; }
+    .snake-wrapper { flex-direction: row; padding: 8px 12px 8px clamp(44px, 10vw, 60px); gap: 12px; min-height: 100dvh; justify-content: center; align-items: center; }
+    .game-screen { flex-direction: row; align-items: center; gap: 12px; }
+    .canvas-wrap { width: min(calc(100dvh - 60px), 380px); }
+    /* side panel: hud + controls stacked */
+    .hud { flex-direction: column; gap: 6px; padding: 8px 12px; }
+    .dpad { display: none; }
   }
 </style>
 
 <script is:inline>
 (function () {
+  /* ── DOM refs ── */
   const settingsScreen = document.getElementById('settings-screen');
   const gameScreen     = document.getElementById('game-screen');
   const startBtn       = document.getElementById('start-btn');
@@ -216,13 +251,37 @@ import GameLayout from '../../layouts/GameLayout.astro';
   const overlayBtn     = document.getElementById('overlay-btn');
   const scoreEl        = document.getElementById('score-val');
   const bestEl         = document.getElementById('best-val');
+  const diffBadge      = document.getElementById('diff-badge');
   const canvas         = document.getElementById('snake-canvas');
   const ctx            = canvas.getContext('2d');
-  const speedSel       = document.getElementById('speed-select');
+  const diffSel        = document.getElementById('difficulty-select');
   const gridSel        = document.getElementById('grid-select');
+  const skinSel        = document.getElementById('skin-select');
+  const obstacleSel    = document.getElementById('obstacle-select');
 
-  let COLS, ROWS, CELL, intervalId, paused, snake, dir, nextDir, food, score, best = 0;
+  /* ── Config ── */
+  const DIFFICULTIES = {
+    easy:   { interval: 340, moveObstacles: false },
+    medium: { interval: 200, moveObstacles: false },
+    hard:   { interval: 110, moveObstacles: true  },
+  };
 
+  const SKINS = {
+    classic: { head: '#4ade80', body: '#22c55e', outline: '#15803d' },
+    neon:    { head: '#22d3ee', body: '#06b6d4', outline: '#0e7490' },
+    fire:    { head: '#fb923c', body: '#f97316', outline: '#c2410c' },
+    purple:  { head: '#c084fc', body: '#a855f7', outline: '#7e22ce' },
+    gold:    { head: '#fcd34d', body: '#f59e0b', outline: '#b45309' },
+    ice:     { head: '#e0f2fe', body: '#7dd3fc', outline: '#0284c7' },
+  };
+
+  const OBSTACLE_MOVE_EVERY = 4; // snake ticks between each obstacle step
+
+  /* ── State ── */
+  let COLS, ROWS, CELL, intervalId, paused, counting, tickCount;
+  let snake, dir, nextDir, food, obstacles, score, best = 0;
+
+  /* ── Canvas init ── */
   function initCanvas() {
     COLS = ROWS = parseInt(gridSel.value, 10);
     const size = canvas.parentElement.clientWidth;
@@ -231,41 +290,104 @@ import GameLayout from '../../layouts/GameLayout.astro';
     CELL = size / COLS;
   }
 
+  /* ── Placement helpers ── */
+  function blockedSet() {
+    const s = new Set(snake.map(s => `${s.x},${s.y}`));
+    obstacles.forEach(o => s.add(`${o.x},${o.y}`));
+    return s;
+  }
+
   function placeFood() {
+    const blocked = blockedSet();
     let pos;
-    do {
-      pos = { x: Math.floor(Math.random() * COLS), y: Math.floor(Math.random() * ROWS) };
-    } while (snake.some(s => s.x === pos.x && s.y === pos.y));
+    do { pos = { x: rnd(COLS), y: rnd(ROWS) }; }
+    while (blocked.has(`${pos.x},${pos.y}`));
     food = pos;
   }
 
-  function startGame() {
-    initCanvas();
-    snake   = [{ x: Math.floor(COLS / 2), y: Math.floor(ROWS / 2) }];
-    dir     = { x: 1, y: 0 };
-    nextDir = { x: 1, y: 0 };
-    score   = 0;
-    scoreEl.textContent = 0;
-    overlay.hidden = true;
-    paused = false;
-    pauseBtn.textContent = 'Pause';
-    placeFood();
-    clearInterval(intervalId);
-    intervalId = setInterval(tick, parseInt(speedSel.value, 10));
+  function placeObstacles() {
+    obstacles = [];
+    const density = parseFloat(obstacleSel.value);
+    if (!density) return;
+    const count = Math.max(1, Math.floor(COLS * ROWS * density));
+    const cx = Math.floor(COLS / 2), cy = Math.floor(ROWS / 2);
+    const forbidden = new Set();
+    for (let dx = -5; dx <= 3; dx++)
+      for (let dy = -2; dy <= 2; dy++) {
+        const nx = cx + dx, ny = cy + dy;
+        if (inBounds(nx, ny)) forbidden.add(`${nx},${ny}`);
+      }
+    const dirs4 = [{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}];
+    let placed = 0, tries = 0;
+    while (placed < count && tries < count * 40) {
+      const ox = rnd(COLS), oy = rnd(ROWS);
+      const key = `${ox},${oy}`;
+      if (!forbidden.has(key)) {
+        const d = dirs4[Math.floor(Math.random() * 4)];
+        obstacles.push({ x: ox, y: oy, vx: d.x, vy: d.y });
+        forbidden.add(key);
+        placed++;
+      }
+      tries++;
+    }
   }
 
+  /* ── Start / countdown ── */
+  function startGame() {
+    initCanvas();
+    const cx = Math.floor(COLS / 2), cy = Math.floor(ROWS / 2);
+    snake   = [{ x: cx, y: cy }, { x: cx-1, y: cy }, { x: cx-2, y: cy }];
+    dir     = { x: 1, y: 0 };
+    nextDir = { x: 1, y: 0 };
+    score   = 0; tickCount = 0;
+    paused  = false; counting = true;
+    scoreEl.textContent = 0;
+    overlay.hidden = true;
+    pauseBtn.textContent = 'Pause';
+    const diff = diffSel.value;
+    diffBadge.textContent = diff;
+    diffBadge.className   = `hud-item diff-badge ${diff}`;
+    placeObstacles();
+    placeFood();
+    clearInterval(intervalId);
+    runCountdown(() => {
+      counting = false;
+      intervalId = setInterval(tick, DIFFICULTIES[diff].interval);
+    });
+  }
+
+  function runCountdown(cb) {
+    const steps = ['3', '2', '1', 'GO!'];
+    const skin  = SKINS[skinSel.value] || SKINS.classic;
+    let i = 0;
+    function step() {
+      draw();
+      ctx.fillStyle = 'rgba(0,0,0,0.52)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      const label = steps[i], isGo = label === 'GO!';
+      ctx.save();
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = `bold ${Math.round(canvas.width * (isGo ? 0.17 : 0.26))}px "Segoe UI",sans-serif`;
+      ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 16;
+      ctx.fillStyle = isGo ? skin.head : '#fff';
+      ctx.fillText(label, canvas.width / 2, canvas.height / 2);
+      ctx.restore();
+      const delay = isGo ? 650 : 850;
+      i++;
+      if (i < steps.length) setTimeout(step, delay);
+      else setTimeout(cb, delay);
+    }
+    step();
+  }
+
+  /* ── Tick ── */
   function tick() {
     dir = nextDir;
     const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
 
-    // Wall collision
-    if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) {
-      return endGame();
-    }
-    // Self collision
-    if (snake.some(s => s.x === head.x && s.y === head.y)) {
-      return endGame();
-    }
+    if (!inBounds(head.x, head.y)) return endGame();
+    if (snake.some(s => s.x === head.x && s.y === head.y)) return endGame();
+    if (obstacles.some(o => o.x === head.x && o.y === head.y)) return endGame();
 
     snake.unshift(head);
     if (head.x === food.x && head.y === food.y) {
@@ -276,53 +398,113 @@ import GameLayout from '../../layouts/GameLayout.astro';
     } else {
       snake.pop();
     }
+
+    // Move obstacles (Hard mode, every N ticks)
+    tickCount++;
+    const diff = DIFFICULTIES[diffSel.value];
+    if (diff.moveObstacles && tickCount % OBSTACLE_MOVE_EVERY === 0) {
+      stepObstacles();
+      // Obstacle walked into snake head?
+      if (obstacles.some(o => o.x === snake[0].x && o.y === snake[0].y)) return endGame();
+    }
+
     draw();
   }
 
-  function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  function stepObstacles() {
+    const snakeSet = new Set(snake.map(s => `${s.x},${s.y}`));
+    const obsSet   = new Set(obstacles.map(o => `${o.x},${o.y}`));
 
-    // Background grid
-    ctx.fillStyle = '#0d3d20';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = 'rgba(255,255,255,0.04)';
-    for (let r = 0; r < ROWS; r++) {
-      for (let c = 0; c < COLS; c++) {
-        if ((r + c) % 2 === 0) ctx.fillRect(c * CELL, r * CELL, CELL, CELL);
-      }
-    }
-
-    // Food
-    const fx = food.x * CELL + CELL / 2;
-    const fy = food.y * CELL + CELL / 2;
-    const fr = CELL * 0.38;
-    ctx.beginPath();
-    ctx.arc(fx, fy, fr, 0, Math.PI * 2);
-    ctx.fillStyle = '#f87171';
-    ctx.fill();
-
-    // Snake
-    snake.forEach((seg, i) => {
-      const x = seg.x * CELL + 1;
-      const y = seg.y * CELL + 1;
-      const w = CELL - 2;
-      const r = CELL * 0.22;
-      ctx.beginPath();
-      ctx.roundRect(x, y, w, w, r);
-      ctx.fillStyle = i === 0 ? '#4ade80' : '#22c55e';
-      ctx.fill();
+    obstacles.forEach(o => {
+      let nx = o.x + o.vx, ny = o.y + o.vy;
+      // Bounce off walls
+      if (!inBounds(nx, ny)) { o.vx = -o.vx; o.vy = -o.vy; nx = o.x + o.vx; ny = o.y + o.vy; }
+      if (!inBounds(nx, ny)) return; // still out — skip
+      const key = `${nx},${ny}`;
+      // Bounce off snake body (not head — handle separately as game-over above)
+      if (snakeSet.has(key)) { o.vx = -o.vx; o.vy = -o.vy; return; }
+      // Bounce off other obstacles
+      if (obsSet.has(key) && !(nx === o.x && ny === o.y)) { o.vx = -o.vx; o.vy = -o.vy; return; }
+      // Skip if food is there
+      if (food.x === nx && food.y === ny) return;
+      obsSet.delete(`${o.x},${o.y}`);
+      o.x = nx; o.y = ny;
+      obsSet.add(key);
     });
   }
 
+  /* ── Draw ── */
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const skin = SKINS[skinSel.value] || SKINS.classic;
+
+    // Background checkerboard
+    ctx.fillStyle = '#0d3d20';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'rgba(255,255,255,0.032)';
+    for (let r = 0; r < ROWS; r++)
+      for (let c = 0; c < COLS; c++)
+        if ((r + c) % 2 === 0) ctx.fillRect(c * CELL, r * CELL, CELL, CELL);
+
+    // Obstacles
+    const isHard = DIFFICULTIES[diffSel.value].moveObstacles;
+    obstacles.forEach(o => {
+      const x = o.x * CELL + 1, y = o.y * CELL + 1, w = CELL - 2;
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, w, Math.max(2, CELL * 0.12));
+      ctx.fillStyle = isHard ? '#92400e' : '#57534e'; // amber tint on hard
+      ctx.fill();
+      ctx.strokeStyle = isHard ? '#78350f' : '#44403c';
+      ctx.lineWidth = 1; ctx.stroke();
+      // top-left highlight
+      ctx.fillStyle = 'rgba(255,255,255,0.13)';
+      ctx.fillRect(x + 2, y + 2, Math.max(3, w * 0.35), 2);
+    });
+
+    // Food
+    const fx = food.x * CELL + CELL / 2, fy = food.y * CELL + CELL / 2, fr = CELL * 0.36;
+    ctx.beginPath(); ctx.arc(fx, fy, fr, 0, Math.PI * 2);
+    ctx.fillStyle = '#f87171'; ctx.fill();
+    ctx.beginPath(); ctx.arc(fx - fr * 0.28, fy - fr * 0.28, fr * 0.3, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.38)'; ctx.fill();
+
+    // Snake body
+    snake.forEach((seg, i) => {
+      const x = seg.x * CELL + 1, y = seg.y * CELL + 1, w = CELL - 2;
+      const r = Math.max(2, CELL * 0.22);
+      ctx.beginPath(); ctx.roundRect(x, y, w, w, r);
+      ctx.fillStyle = i === 0 ? skin.head : skin.body; ctx.fill();
+      if (CELL > 7) { ctx.strokeStyle = skin.outline; ctx.lineWidth = 1; ctx.stroke(); }
+    });
+
+    // Eyes on head (direction-aware)
+    if (CELL > 8) {
+      const h = snake[0];
+      const perp = { x: dir.y, y: -dir.x };
+      const eyeR = Math.max(1.5, CELL * 0.1);
+      const bx = h.x * CELL + CELL / 2 + dir.x * CELL * 0.15;
+      const by = h.y * CELL + CELL / 2 + dir.y * CELL * 0.15;
+      [-1, 1].forEach(s => {
+        const ex = bx + s * perp.x * CELL * 0.2;
+        const ey = by + s * perp.y * CELL * 0.2;
+        ctx.beginPath(); ctx.arc(ex, ey, eyeR, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
+        ctx.beginPath(); ctx.arc(ex, ey, eyeR * 0.52, 0, Math.PI * 2); ctx.fillStyle = '#111'; ctx.fill();
+      });
+    }
+  }
+
+  /* ── Game over / pause ── */
   function endGame() {
     clearInterval(intervalId);
-    overlayMsg.textContent = `Game Over! Score: ${score}`;
+    overlayMsg.textContent = `Game Over!\nScore: ${score}`;
     overlay.hidden = false;
   }
 
   function togglePause() {
+    if (counting) return;
+    const diff = diffSel.value;
     if (paused) {
-      intervalId = setInterval(tick, parseInt(speedSel.value, 10));
+      intervalId = setInterval(tick, DIFFICULTIES[diff].interval);
       pauseBtn.textContent = 'Pause';
     } else {
       clearInterval(intervalId);
@@ -331,24 +513,26 @@ import GameLayout from '../../layouts/GameLayout.astro';
     paused = !paused;
   }
 
-  // Direction input
+  /* ── Input ── */
   function setDir(dx, dy) {
     if (dx === -dir.x && dy === -dir.y) return; // no 180°
     nextDir = { x: dx, y: dy };
   }
 
   document.addEventListener('keydown', e => {
+    if (!gameScreen.classList.contains('active')) return;
     switch (e.key) {
-      case 'ArrowUp':    case 'w': e.preventDefault(); setDir(0, -1);  break;
-      case 'ArrowDown':  case 's': e.preventDefault(); setDir(0,  1);  break;
-      case 'ArrowLeft':  case 'a': e.preventDefault(); setDir(-1, 0);  break;
-      case 'ArrowRight': case 'd': e.preventDefault(); setDir(1,  0);  break;
-      case ' ':                    e.preventDefault(); togglePause();   break;
+      case 'ArrowUp':    case 'w': e.preventDefault(); setDir(0, -1); break;
+      case 'ArrowDown':  case 's': e.preventDefault(); setDir(0,  1); break;
+      case 'ArrowLeft':  case 'a': e.preventDefault(); setDir(-1, 0); break;
+      case 'ArrowRight': case 'd': e.preventDefault(); setDir(1,  0); break;
+      case ' ':                    e.preventDefault(); togglePause(); break;
     }
   });
 
   document.querySelectorAll('.dpad-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('pointerdown', e => {
+      e.preventDefault();
       const d = btn.dataset.dir;
       if (d === 'up')    setDir(0, -1);
       if (d === 'down')  setDir(0,  1);
@@ -357,50 +541,45 @@ import GameLayout from '../../layouts/GameLayout.astro';
     });
   });
 
-  // Swipe support
+  // Swipe on canvas
   let touchX, touchY;
   canvas.addEventListener('touchstart', e => {
-    touchX = e.touches[0].clientX;
-    touchY = e.touches[0].clientY;
+    touchX = e.touches[0].clientX; touchY = e.touches[0].clientY;
   }, { passive: true });
   canvas.addEventListener('touchend', e => {
     if (touchX == null) return;
     const dx = e.changedTouches[0].clientX - touchX;
     const dy = e.changedTouches[0].clientY - touchY;
-    if (Math.abs(dx) > Math.abs(dy)) {
-      setDir(dx > 0 ? 1 : -1, 0);
-    } else {
-      setDir(0, dy > 0 ? 1 : -1);
-    }
+    if (Math.abs(dx) > Math.abs(dy)) setDir(dx > 0 ? 1 : -1, 0);
+    else setDir(0, dy > 0 ? 1 : -1);
     touchX = touchY = null;
   }, { passive: true });
 
-  // Screen transitions
+  /* ── Screen transitions ── */
   startBtn.addEventListener('click', () => {
     settingsScreen.classList.remove('active');
     gameScreen.classList.add('active');
     startGame();
   });
-
   settingsBtn.addEventListener('click', () => {
     clearInterval(intervalId);
     gameScreen.classList.remove('active');
     settingsScreen.classList.add('active');
   });
-
   pauseBtn.addEventListener('click', togglePause);
   overlayBtn.addEventListener('click', startGame);
 
-  // Resize: redraw at new size
+  // Resize handler
   let resizeTimer;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
-      if (gameScreen.classList.contains('active')) {
-        initCanvas();
-        draw();
-      }
+      if (gameScreen.classList.contains('active')) { initCanvas(); draw(); }
     }, 100);
   });
+
+  /* ── Utils ── */
+  function rnd(n) { return Math.floor(Math.random() * n); }
+  function inBounds(x, y) { return x >= 0 && x < COLS && y >= 0 && y < ROWS; }
 })();
 </script>

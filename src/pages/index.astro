@@ -4,7 +4,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const games = [
   { title: 'Tic-Tac-Toe', href: `${base}/games/tic-tac-toe`, image: `${base}/favicon.png`, available: true },
-  { title: 'Snake', href: `${base}/games/snake`, emoji: '🐍', available: true },
+  { title: 'Snake', href: `${base}/games/snake`, image: `${base}/snake_icon.png`, available: true },
 ];
 ---
 <BaseLayout title="Minigames">
