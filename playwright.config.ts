@@ -16,7 +16,7 @@ export default defineConfig({
   ],
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:4321',
+    url: 'http://localhost:4321/tic-tac-toe/',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
