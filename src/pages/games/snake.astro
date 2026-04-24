@@ -43,8 +43,8 @@ import GameLayout from '../../layouts/GameLayout.astro';
           <span>Obstacles</span>
           <select id="obstacle-select">
             <option value="0">None</option>
-            <option value="0.03">Few</option>
-            <option value="0.08">Many</option>
+            <option value="0.015">Few</option>
+            <option value="0.04">Many</option>
           </select>
         </label>
 
@@ -261,9 +261,9 @@ import GameLayout from '../../layouts/GameLayout.astro';
 
   /* ── Config ── */
   const DIFFICULTIES = {
-    easy:   { interval: 340, moveObstacles: false },
-    medium: { interval: 200, moveObstacles: false },
-    hard:   { interval: 110, moveObstacles: true  },
+    easy:   { interval: 260, moveObstacles: false },
+    medium: { interval: 150, moveObstacles: false },
+    hard:   { interval: 85,  moveObstacles: true  },
   };
 
   const SKINS = {
