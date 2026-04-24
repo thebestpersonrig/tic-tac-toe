@@ -1,0 +1,475 @@
+---
+import GameLayout from '../../layouts/GameLayout.astro';
+---
+<GameLayout title="Flappy Bird">
+  <div class="fb-wrapper">
+
+    <!-- ── Settings ── -->
+    <div class="settings-screen active" id="settings-screen">
+      <h1 class="game-title">Flappy Bird</h1>
+      <div class="settings-form">
+
+        <label class="field">
+          <span>Difficulty</span>
+          <select id="difficulty-select">
+            <option value="easy">Easy — wide gap, slow</option>
+            <option value="medium" selected>Medium — standard</option>
+            <option value="hard">Hard — tight + fast</option>
+          </select>
+        </label>
+
+      </div>
+      <button class="btn-primary" id="start-btn">Start Game</button>
+    </div>
+
+    <!-- ── Game ── -->
+    <div class="game-screen" id="game-screen">
+      <div class="hud">
+        <span class="hud-item">Score: <strong id="score-val">0</strong></span>
+        <span class="hud-item">Best: <strong id="best-val">0</strong></span>
+        <span class="hud-item diff-badge" id="diff-badge"></span>
+      </div>
+
+      <div class="canvas-wrap">
+        <canvas id="fb-canvas" aria-label="Flappy Bird game board"></canvas>
+        <div class="overlay" id="overlay" hidden>
+          <p id="overlay-msg"></p>
+          <button class="btn-secondary" id="overlay-btn">Play Again</button>
+        </div>
+      </div>
+
+      <div class="controls-row">
+        <button class="btn-secondary" id="settings-btn">Settings</button>
+      </div>
+    </div>
+
+  </div>
+</GameLayout>
+
+<style is:global>
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background:
+      radial-gradient(circle at top left,  rgba(255,255,255,0.15), transparent 28%),
+      radial-gradient(circle at bottom right, rgba(255,255,255,0.10), transparent 22%),
+      linear-gradient(135deg, #1a6bb8, #0d3d6e);
+    min-height: 100dvh;
+    color: #fff;
+  }
+</style>
+
+<style>
+  /* ═══════════════════════════════ Layout ═════════════════════════════ */
+  .fb-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100dvh;
+    padding: clamp(50px, 8vh, 76px) clamp(10px, 3vw, 24px) clamp(12px, 3vh, 28px);
+    box-sizing: border-box;
+  }
+
+  /* ═══════════════════════════════ Settings ═══════════════════════════ */
+  .settings-screen {
+    display: none; flex-direction: column; align-items: center;
+    gap: 20px; width: 100%; max-width: 400px;
+  }
+  .settings-screen.active { display: flex; }
+  .game-title {
+    margin: 0; font-size: clamp(1.8rem, 5vw, 2.6rem);
+    text-align: center; text-shadow: 0 3px 10px rgba(0,0,0,0.3);
+  }
+  .settings-form { display: flex; flex-direction: column; gap: 14px; width: 100%; }
+  .field { display: flex; flex-direction: column; gap: 4px; font-size: 0.9rem; color: rgba(255,255,255,0.8); }
+  select {
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 10px; color: #fff; padding: 10px 12px;
+    font-size: 1rem; font-family: inherit; cursor: pointer;
+    appearance: none; -webkit-appearance: none;
+  }
+  select option { background: #0d3d6e; color: #fff; }
+
+  /* ═══════════════════════════════ Game screen ════════════════════════ */
+  .game-screen {
+    display: none; flex-direction: column; align-items: center;
+    gap: clamp(6px, 1.4vh, 12px); width: 100%;
+  }
+  .game-screen.active { display: flex; }
+
+  /* HUD */
+  .hud {
+    display: flex; gap: clamp(14px, 3vw, 28px); align-items: center;
+    font-size: clamp(0.8rem, 2.4vw, 0.95rem);
+    background: rgba(0,0,0,0.28); padding: 5px 18px; border-radius: 999px;
+  }
+  .diff-badge {
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em;
+    padding: 2px 8px; border-radius: 999px; text-transform: uppercase;
+  }
+  .diff-badge.easy   { background: #22c55e33; color: #4ade80; }
+  .diff-badge.medium { background: #f59e0b33; color: #fbbf24; }
+  .diff-badge.hard   { background: #ef444433; color: #f87171; }
+
+  /* Canvas */
+  .canvas-wrap {
+    position: relative;
+    width: min(min(100vw - 20px, 100dvh - 148px), 560px);
+    aspect-ratio: 1;
+    border-radius: 14px; overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.45);
+  }
+  @media (pointer: coarse) {
+    .canvas-wrap {
+      width: min(100vw - 20px, calc(100dvh - clamp(220px, 38vh, 280px)));
+    }
+  }
+  #fb-canvas { display: block; width: 100%; height: 100%; }
+
+  /* Overlay */
+  .overlay {
+    position: absolute; inset: 0; background: rgba(0,0,0,0.65);
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 16px; border-radius: 14px;
+  }
+  .overlay[hidden] { display: none; }
+  #overlay-msg {
+    margin: 0; font-size: clamp(1rem, 4vw, 1.4rem);
+    font-weight: 700; text-align: center; padding: 0 16px;
+    white-space: pre-line;
+  }
+
+  .controls-row { display: flex; gap: 12px; }
+
+  /* ═══════════════════════════════ Buttons ════════════════════════════ */
+  .btn-primary, .btn-secondary {
+    border: none; border-radius: 12px; font-family: inherit; font-weight: 600;
+    cursor: pointer; transition: transform 0.15s, background 0.15s;
+    -webkit-tap-highlight-color: transparent; min-height: 44px;
+  }
+  .btn-primary {
+    background: #38bdf8; color: #0c2a4a;
+    font-size: 1.05rem; padding: 12px 28px; width: 100%;
+  }
+  .btn-primary:hover { transform: translateY(-2px); background: #0ea5e9; }
+  .btn-secondary {
+    background: rgba(255,255,255,0.15); color: #fff;
+    font-size: 0.9rem; padding: 10px 22px; border: 1px solid rgba(255,255,255,0.2);
+  }
+  .btn-secondary:hover { background: rgba(255,255,255,0.25); }
+
+  /* ═══════════════════════════════ Landscape phones ═══════════════════ */
+  @media (orientation: landscape) and (max-height: 500px) {
+    .fb-wrapper { flex-direction: row; padding: 8px 12px 8px clamp(44px, 10vw, 60px); gap: 12px; }
+    .game-screen { flex-direction: row; align-items: center; gap: 12px; }
+    .canvas-wrap { width: min(calc(100dvh - 60px), 360px); }
+    .hud { flex-direction: column; gap: 6px; padding: 8px 12px; }
+  }
+</style>
+
+<script is:inline>
+(function () {
+  /* ── DOM refs ── */
+  const settingsScreen = document.getElementById('settings-screen');
+  const gameScreen     = document.getElementById('game-screen');
+  const startBtn       = document.getElementById('start-btn');
+  const settingsBtn    = document.getElementById('settings-btn');
+  const overlay        = document.getElementById('overlay');
+  const overlayMsg     = document.getElementById('overlay-msg');
+  const overlayBtn     = document.getElementById('overlay-btn');
+  const scoreEl        = document.getElementById('score-val');
+  const bestEl         = document.getElementById('best-val');
+  const diffBadge      = document.getElementById('diff-badge');
+  const canvas         = document.getElementById('fb-canvas');
+  const ctx            = canvas.getContext('2d');
+  const diffSel        = document.getElementById('difficulty-select');
+
+  /* ── Config ── */
+  const DIFFICULTIES = {
+    easy:   { gravity: 0.32, flapPower: -6.8, pipeSpeed: 2.4, pipeGap: 175, pipeInterval: 95 },
+    medium: { gravity: 0.42, flapPower: -7.8, pipeSpeed: 3.4, pipeGap: 135, pipeInterval: 82 },
+    hard:   { gravity: 0.52, flapPower: -8.2, pipeSpeed: 5.0, pipeGap: 108, pipeInterval: 68 },
+  };
+
+  // Reference dimensions (at 400px canvas size)
+  const PIPE_W_REF = 50;
+  const BIRD_R_REF = 14;
+
+  /* ── State ── */
+  let W, H, GROUND_H, SC;
+  let bird, pipes, diff, score, best = 0;
+  let animId, gameRunning, started, frameCount;
+
+  /* ── Canvas init ── */
+  function initCanvas() {
+    const size = canvas.parentElement.clientWidth;
+    canvas.width = size;
+    canvas.height = size;
+    W = size; H = size;
+    GROUND_H = Math.max(22, H * 0.065);
+    SC = size / 400;
+  }
+
+  /* ── Start game ── */
+  function startGame() {
+    cancelAnimationFrame(animId);
+    initCanvas();
+
+    const key = diffSel.value;
+    diff = DIFFICULTIES[key];
+    diffBadge.textContent = key;
+    diffBadge.className = `hud-item diff-badge ${key}`;
+
+    bird = { x: W * 0.22, y: H * 0.42, vy: 0, angle: 0 };
+    pipes = [];
+    score = 0;
+    frameCount = 0;
+    started = false;
+    gameRunning = true;
+
+    scoreEl.textContent = 0;
+    overlay.hidden = true;
+
+    animId = requestAnimationFrame(gameLoop);
+  }
+
+  /* ── Game loop ── */
+  function gameLoop() {
+    if (!gameRunning) return;
+    animId = requestAnimationFrame(gameLoop);
+
+    if (started) {
+      frameCount++;
+      update();
+      if (!gameRunning) { draw(); return; }
+    }
+
+    draw();
+
+    if (!started) {
+      ctx.fillStyle = 'rgba(0,0,0,0.42)';
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 8;
+      ctx.font = `bold ${Math.round(W * 0.056)}px "Segoe UI",sans-serif`;
+      ctx.fillText('Tap or Space to fly!', W / 2, H / 2);
+      ctx.shadowColor = 'transparent';
+    }
+  }
+
+  /* ── Update ── */
+  function update() {
+    const birdR = BIRD_R_REF * SC;
+
+    // Physics
+    bird.vy += diff.gravity;
+    bird.y  += bird.vy;
+    bird.angle = Math.min(Math.PI / 2.2, Math.max(-0.5, bird.vy * 0.08));
+
+    // Boundary collision
+    if (bird.y - birdR < 0 || bird.y + birdR >= H - GROUND_H) {
+      endGame(); return;
+    }
+
+    // Spawn pipes (skip frame 0)
+    if (frameCount > 0 && frameCount % diff.pipeInterval === 0) {
+      const minTop = Math.max(50 * SC, H * 0.14);
+      const gap    = diff.pipeGap * SC;
+      const maxTop = H - GROUND_H - gap - minTop;
+      if (maxTop > minTop) {
+        const gapTop = minTop + Math.random() * (maxTop - minTop);
+        pipes.push({ x: W + PIPE_W_REF * SC, gapTop, scored: false });
+      }
+    }
+
+    // Move pipes + scoring + collision
+    const speed  = diff.pipeSpeed * SC;
+    const pipeW  = PIPE_W_REF * SC;
+    const gap    = diff.pipeGap * SC;
+    const hitR   = birdR * 0.78; // forgiving hitbox
+
+    for (const p of pipes) {
+      p.x -= speed;
+
+      if (!p.scored && p.x + pipeW < bird.x - birdR) {
+        p.scored = true;
+        score++;
+        scoreEl.textContent = score;
+        if (score > best) { best = score; bestEl.textContent = best; }
+      }
+
+      const inX = bird.x + hitR > p.x && bird.x - hitR < p.x + pipeW;
+      if (inX) {
+        const gapEnd = p.gapTop + gap;
+        if (bird.y - hitR < p.gapTop || bird.y + hitR > gapEnd) { endGame(); return; }
+      }
+    }
+
+    pipes = pipes.filter(p => p.x + pipeW > -10);
+  }
+
+  /* ── Draw ── */
+  function draw() {
+    const groundY = H - GROUND_H;
+
+    // Sky
+    const sky = ctx.createLinearGradient(0, 0, 0, groundY);
+    sky.addColorStop(0, '#4db8e8');
+    sky.addColorStop(1, '#c5e9f8');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, W, groundY);
+
+    // Ground
+    ctx.fillStyle = '#7cb83e';
+    ctx.fillRect(0, groundY, W, GROUND_H);
+    ctx.fillStyle = '#5a8c28';
+    ctx.fillRect(0, groundY, W, 4);
+
+    // Pipes and bird
+    for (const p of pipes) drawPipe(p.x, p.gapTop);
+    drawBird(bird.x, bird.y, bird.angle);
+  }
+
+  function drawPipe(x, gapTop) {
+    const pipeW  = PIPE_W_REF * SC;
+    const capH   = Math.max(14, 20 * SC);
+    const capW   = pipeW + 8 * SC;
+    const capX   = x - 4 * SC;
+    const gap    = diff.pipeGap * SC;
+    const groundY = H - GROUND_H;
+
+    ctx.fillStyle   = '#4caf50';
+    ctx.strokeStyle = '#2e7d32';
+    ctx.lineWidth   = 1.5;
+
+    // Top body
+    const topBodyH = gapTop - capH;
+    if (topBodyH > 0) {
+      ctx.beginPath(); ctx.rect(x, 0, pipeW, topBodyH);
+      ctx.fill(); ctx.stroke();
+    }
+    // Top cap
+    ctx.beginPath();
+    ctx.roundRect(capX, gapTop - capH, capW, capH, 5 * SC);
+    ctx.fill(); ctx.stroke();
+
+    const botCapY  = gapTop + gap;
+    const botBodyH = groundY - (botCapY + capH);
+
+    // Bottom cap
+    ctx.beginPath();
+    ctx.roundRect(capX, botCapY, capW, capH, 5 * SC);
+    ctx.fill(); ctx.stroke();
+    // Bottom body
+    if (botBodyH > 0) {
+      ctx.beginPath(); ctx.rect(x, botCapY + capH, pipeW, botBodyH);
+      ctx.fill(); ctx.stroke();
+    }
+
+    // Highlight stripe
+    ctx.fillStyle = 'rgba(255,255,255,0.18)';
+    if (topBodyH > 0) ctx.fillRect(x + 4 * SC, 0, 5 * SC, topBodyH);
+    if (botBodyH > 0) ctx.fillRect(x + 4 * SC, botCapY + capH, 5 * SC, botBodyH);
+  }
+
+  function drawBird(x, y, angle) {
+    const r = BIRD_R_REF * SC;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+
+    // Drop shadow
+    ctx.shadowColor = 'rgba(0,0,0,0.2)'; ctx.shadowBlur = 4 * SC;
+
+    // Body
+    ctx.beginPath();
+    ctx.ellipse(0, 0, r, r * 0.88, 0, 0, Math.PI * 2);
+    ctx.fillStyle = '#FFD600'; ctx.fill();
+    ctx.strokeStyle = '#F9A825'; ctx.lineWidth = 1.5; ctx.stroke();
+
+    ctx.shadowColor = 'transparent';
+
+    // Wing
+    ctx.beginPath();
+    ctx.ellipse(-r * 0.06, r * 0.18, r * 0.5, r * 0.28, -0.3, 0, Math.PI * 2);
+    ctx.fillStyle = '#FFEE58'; ctx.fill();
+
+    // Eye white
+    ctx.beginPath();
+    ctx.arc(r * 0.32, -r * 0.14, r * 0.3, 0, Math.PI * 2);
+    ctx.fillStyle = '#fff'; ctx.fill();
+    // Pupil
+    ctx.beginPath();
+    ctx.arc(r * 0.4, -r * 0.12, r * 0.14, 0, Math.PI * 2);
+    ctx.fillStyle = '#111'; ctx.fill();
+
+    // Beak
+    ctx.beginPath();
+    ctx.moveTo(r * 0.62,  -r * 0.05);
+    ctx.lineTo(r * 1.15,   r * 0.04);
+    ctx.lineTo(r * 1.15,   r * 0.22);
+    ctx.lineTo(r * 0.62,   r * 0.18);
+    ctx.closePath();
+    ctx.fillStyle = '#FF6F00'; ctx.fill();
+    // Beak divider
+    ctx.beginPath();
+    ctx.moveTo(r * 0.62, r * 0.07);
+    ctx.lineTo(r * 1.15, r * 0.13);
+    ctx.strokeStyle = '#BF360C'; ctx.lineWidth = 1; ctx.stroke();
+
+    ctx.restore();
+  }
+
+  /* ── End game ── */
+  function endGame() {
+    gameRunning = false;
+    overlayMsg.textContent = `Game Over!\nScore: ${score}`;
+    overlay.hidden = false;
+  }
+
+  /* ── Flap ── */
+  function flap() {
+    if (!gameRunning) return;
+    if (!started) started = true;
+    bird.vy = diff.flapPower;
+  }
+
+  /* ── Input ── */
+  document.addEventListener('keydown', e => {
+    if ((e.code === 'Space' || e.key === ' ') && gameScreen.classList.contains('active')) {
+      e.preventDefault();
+      flap();
+    }
+  });
+
+  canvas.addEventListener('pointerdown', e => { e.preventDefault(); flap(); });
+
+  /* ── Screen transitions ── */
+  startBtn.addEventListener('click', () => {
+    settingsScreen.classList.remove('active');
+    gameScreen.classList.add('active');
+    startGame();
+  });
+
+  settingsBtn.addEventListener('click', () => {
+    gameRunning = false;
+    cancelAnimationFrame(animId);
+    gameScreen.classList.remove('active');
+    settingsScreen.classList.add('active');
+  });
+
+  overlayBtn.addEventListener('click', startGame);
+
+  // Resize: redraw static state only (don't restart mid-game)
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (gameScreen.classList.contains('active') && !gameRunning) { initCanvas(); draw(); }
+    }, 100);
+  });
+})();
+</script>
