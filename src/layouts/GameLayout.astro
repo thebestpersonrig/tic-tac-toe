@@ -1,0 +1,45 @@
+---
+import BaseLayout from './BaseLayout.astro';
+interface Props {
+  title: string;
+}
+const { title } = Astro.props;
+---
+<BaseLayout title={title}>
+  <a href="/" class="back-link" aria-label="Back to games">← Games</a>
+  <slot />
+</BaseLayout>
+
+<style is:global>
+  .back-link {
+    position: fixed;
+    top: max(10px, env(safe-area-inset-top, 10px));
+    left: max(10px, env(safe-area-inset-left, 10px));
+    z-index: 20;
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.35);
+    color: #fff;
+    text-decoration: none;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    backdrop-filter: blur(6px);
+    transition: background 0.18s ease, transform 0.18s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  @media (pointer: coarse) {
+    .back-link {
+      min-height: 44px;
+      padding: 8px 16px;
+      font-size: 15px;
+    }
+  }
+  .back-link:hover {
+    background: rgba(0, 0, 0, 0.55);
+    transform: translateY(-1px);
+  }
+</style>

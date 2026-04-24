@@ -1,0 +1,122 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const games = [
+  { title: 'Tic-Tac-Toe', href: '/games/tic-tac-toe', image: '/favicon.png', available: true },
+];
+---
+<BaseLayout title="Minigames">
+  <main class="hub">
+    <header class="intro">
+      <h1>Minigames</h1>
+    </header>
+
+    <div class="grid">
+      {games.map((g) => (
+        g.available ? (
+          <a href={g.href} class="card">
+            {g.image ? (
+              <img src={g.image} alt="" class="thumb" />
+            ) : (
+              <div class="emoji">{g.emoji}</div>
+            )}
+            <div class="title">{g.title}</div>
+          </a>
+        ) : (
+          <div class="card card-disabled" aria-disabled="true">
+            {g.image ? (
+              <img src={g.image} alt="" class="thumb" />
+            ) : (
+              <div class="emoji">{g.emoji}</div>
+            )}
+            <div class="title">{g.title}</div>
+            <div class="soon">Coming soon</div>
+          </div>
+        )
+      ))}
+    </div>
+  </main>
+</BaseLayout>
+
+<style is:global>
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    color: #fff;
+    background:
+      radial-gradient(circle at top left, rgba(255,255,255,0.18), transparent 26%),
+      radial-gradient(circle at bottom right, rgba(255,255,255,0.12), transparent 22%),
+      linear-gradient(135deg, #5b7cfa, #7d4fd4);
+    min-height: 100dvh;
+  }
+</style>
+
+<style>
+  .hub {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: clamp(24px, 6vw, 64px) clamp(14px, 3vw, 24px);
+  }
+  .intro {
+    text-align: center;
+    margin-bottom: clamp(20px, 4vw, 40px);
+  }
+  h1 {
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    margin: 0 0 8px;
+    letter-spacing: 0.02em;
+    text-shadow: 0 3px 10px rgba(0, 0, 0, 0.22);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(clamp(140px, 40vw, 200px), 1fr));
+    gap: clamp(10px, 2vw, 16px);
+  }
+  .card {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: clamp(16px, 3vw, 22px);
+    padding: clamp(16px, 3vw, 28px) clamp(12px, 2vw, 20px);
+    text-align: center;
+    text-decoration: none;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    transition: transform 0.18s ease, background 0.18s ease;
+    box-shadow: 0 10px 24px rgba(12, 20, 44, 0.2);
+    min-height: 44px;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.2);
+  }
+  .card-disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .card-disabled:hover {
+    transform: none;
+    background: rgba(255, 255, 255, 0.12);
+  }
+  .emoji {
+    font-size: clamp(2rem, 6vw, 2.5rem);
+    line-height: 1;
+  }
+  .thumb {
+    width: clamp(72px, 18vw, 108px);
+    height: clamp(72px, 18vw, 108px);
+    border-radius: 16px;
+    object-fit: cover;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+  }
+  .title {
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+  .soon {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.7);
+  }
+</style>
