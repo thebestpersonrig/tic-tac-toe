@@ -12,9 +12,9 @@ import GameLayout from '../../layouts/GameLayout.astro';
         <label class="field">
           <span>Difficulty</span>
           <select id="difficulty-select">
-            <option value="easy">Easy — wide gap, slow</option>
-            <option value="medium" selected>Medium — standard</option>
-            <option value="hard">Hard — tight + fast</option>
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
           </select>
         </label>
 
@@ -187,9 +187,9 @@ import GameLayout from '../../layouts/GameLayout.astro';
 
   /* ── Config ── */
   const DIFFICULTIES = {
-    easy:   { gravity: 0.32, flapPower: -6.8, pipeSpeed: 2.4, pipeGap: 175, pipeInterval: 95 },
-    medium: { gravity: 0.42, flapPower: -7.8, pipeSpeed: 3.4, pipeGap: 135, pipeInterval: 82 },
-    hard:   { gravity: 0.52, flapPower: -8.2, pipeSpeed: 5.0, pipeGap: 108, pipeInterval: 68 },
+    easy:   { gravity: 0.42, flapPower: -7.8, pipeSpeed: 3.4, pipeGap: 145, pipeInterval: 82 },
+    medium: { gravity: 0.54, flapPower: -8.4, pipeSpeed: 4.6, pipeGap: 115, pipeInterval: 70 },
+    hard:   { gravity: 0.68, flapPower: -9.0, pipeSpeed: 6.5, pipeGap:  88, pipeInterval: 56 },
   };
 
   // Reference dimensions (at 400px canvas size)
