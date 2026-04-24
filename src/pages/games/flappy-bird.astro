@@ -12,9 +12,9 @@ import GameLayout from '../../layouts/GameLayout.astro';
         <label class="field">
           <span>Difficulty</span>
           <select id="difficulty-select">
-            <option value="easy">Easy — wide gap, slow</option>
-            <option value="medium" selected>Medium — standard</option>
-            <option value="hard">Hard — tight + fast</option>
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
           </select>
         </label>
 
@@ -187,9 +187,9 @@ import GameLayout from '../../layouts/GameLayout.astro';
 
   /* ── Config ── */
   const DIFFICULTIES = {
-    easy:   { gravity: 0.32, flapPower: -6.8, pipeSpeed: 2.4, pipeGap: 175, pipeInterval: 95 },
-    medium: { gravity: 0.42, flapPower: -7.8, pipeSpeed: 3.4, pipeGap: 135, pipeInterval: 82 },
-    hard:   { gravity: 0.52, flapPower: -8.2, pipeSpeed: 5.0, pipeGap: 108, pipeInterval: 68 },
+    easy:   { gravity: 0.42, flapPower: -7.8, pipeSpeed: 3.4, pipeGap: 145, pipeInterval: 82 },
+    medium: { gravity: 0.54, flapPower: -8.4, pipeSpeed: 4.6, pipeGap: 115, pipeInterval: 70 },
+    hard:   { gravity: 0.68, flapPower: -9.0, pipeSpeed: 6.5, pipeGap:  88, pipeInterval: 56 },
   };
 
   // Reference dimensions (at 400px canvas size)
@@ -198,8 +198,37 @@ import GameLayout from '../../layouts/GameLayout.astro';
 
   /* ── State ── */
   let W, H, GROUND_H, SC;
-  let bird, pipes, diff, score, best = 0;
+  let bird, pipes, clouds, hillOffset, diff, score, best = 0;
   let animId, gameRunning, started, frameCount;
+
+  /* ── Background helpers ── */
+  function initBg() {
+    hillOffset = 0;
+    clouds = [];
+    // Far layer — small, slow
+    for (let i = 0; i < 4; i++) {
+      clouds.push({ x: Math.random() * W, y: H * (0.04 + Math.random() * 0.22),
+                    baseR: (18 + Math.random() * 16) * SC, r: 0, sf: 0.12, alpha: 0.5 });
+    }
+    // Near layer — bigger, faster
+    for (let i = 0; i < 3; i++) {
+      clouds.push({ x: Math.random() * W, y: H * (0.06 + Math.random() * 0.18),
+                    baseR: (32 + Math.random() * 24) * SC, r: 0, sf: 0.22, alpha: 0.82 });
+    }
+    clouds.forEach(c => { c.r = c.baseR; });
+  }
+
+  function scrollBg(spd) {
+    hillOffset += spd * 0.18;
+    for (const c of clouds) {
+      c.x -= spd * c.sf;
+      if (c.x + c.r * 3.2 < 0) {
+        c.x = W + c.r;
+        c.y = H * (0.04 + Math.random() * 0.22);
+        c.r = c.baseR * (0.8 + Math.random() * 0.4);
+      }
+    }
+  }
 
   /* ── Canvas init ── */
   function initCanvas() {
@@ -224,6 +253,7 @@ import GameLayout from '../../layouts/GameLayout.astro';
     bird = { x: W * 0.22, y: H * 0.42, vy: 0, angle: 0 };
     pipes = [];
     score = 0;
+    initBg();
     frameCount = 0;
     started = false;
     gameRunning = true;
@@ -243,6 +273,8 @@ import GameLayout from '../../layouts/GameLayout.astro';
       frameCount++;
       update();
       if (!gameRunning) { draw(); return; }
+    } else {
+      scrollBg(1.4 * SC); // gentle drift while waiting
     }
 
     draw();
@@ -287,6 +319,7 @@ import GameLayout from '../../layouts/GameLayout.astro';
 
     // Move pipes + scoring + collision
     const speed  = diff.pipeSpeed * SC;
+    scrollBg(speed);
     const pipeW  = PIPE_W_REF * SC;
     const gap    = diff.pipeGap * SC;
     const hitR   = birdR * 0.78; // forgiving hitbox
@@ -322,6 +355,12 @@ import GameLayout from '../../layouts/GameLayout.astro';
     ctx.fillStyle = sky;
     ctx.fillRect(0, 0, W, groundY);
 
+    // Distant hills
+    drawHills(groundY);
+
+    // Clouds
+    for (const c of clouds) drawCloud(c.x, c.y, c.r, c.alpha);
+
     // Ground
     ctx.fillStyle = '#7cb83e';
     ctx.fillRect(0, groundY, W, GROUND_H);
@@ -331,6 +370,43 @@ import GameLayout from '../../layouts/GameLayout.astro';
     // Pipes and bird
     for (const p of pipes) drawPipe(p.x, p.gapTop);
     drawBird(bird.x, bird.y, bird.angle);
+  }
+
+  function drawHills(groundY) {
+    const hillH = H * 0.14;
+    const period = W * 0.55;
+
+    // Far hills
+    ctx.beginPath();
+    ctx.moveTo(0, groundY);
+    for (let x = 0; x <= W; x += 6) {
+      const y = groundY - hillH * 0.55 * (0.5 + 0.5 * Math.sin((x + hillOffset * 0.4) / period));
+      ctx.lineTo(x, y);
+    }
+    ctx.lineTo(W, groundY);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(90,150,55,0.38)';
+    ctx.fill();
+
+    // Near hills
+    ctx.beginPath();
+    ctx.moveTo(0, groundY);
+    for (let x = 0; x <= W; x += 6) {
+      const y = groundY - hillH * (0.5 + 0.5 * Math.sin((x + hillOffset * 0.7 + W * 0.3) / (period * 0.75)));
+      ctx.lineTo(x, y);
+    }
+    ctx.lineTo(W, groundY);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(110,175,60,0.42)';
+    ctx.fill();
+  }
+
+  function drawCloud(x, y, r, alpha) {
+    ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+    ctx.beginPath(); ctx.arc(x,           y,          r,        0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + r * 0.9, y - r * 0.4, r * 0.7,  0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + r * 1.8, y,           r * 0.85, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + r * 0.9, y + r * 0.2, r * 0.6,  0, Math.PI * 2); ctx.fill();
   }
 
   function drawPipe(x, gapTop) {
