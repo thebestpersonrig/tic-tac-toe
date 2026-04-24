@@ -196,6 +196,8 @@ import GameLayout from '../../layouts/GameLayout.astro';
   const PIPE_W_REF = 50;
   const BIRD_R_REF = 14;
 
+  const IS_PHONE = window.matchMedia('(pointer: coarse)').matches;
+
   /* ── State ── */
   let W, H, GROUND_H, SC;
   let bird, pipes, clouds, hillOffset, diff, score, best = 0;
@@ -246,7 +248,13 @@ import GameLayout from '../../layouts/GameLayout.astro';
     initCanvas();
 
     const key = diffSel.value;
-    diff = DIFFICULTIES[key];
+    diff = { ...DIFFICULTIES[key] };
+    if (IS_PHONE) {
+      diff.pipeGap      = Math.round(diff.pipeGap      * 1.28);
+      diff.pipeSpeed    = diff.pipeSpeed    * 0.75;
+      diff.gravity      = diff.gravity      * 0.80;
+      diff.pipeInterval = Math.round(diff.pipeInterval * 1.20);
+    }
     diffBadge.textContent = key;
     diffBadge.className = `hud-item diff-badge ${key}`;
 
